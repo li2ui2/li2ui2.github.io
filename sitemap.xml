@@ -2,63 +2,63 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://example.com/tags/index.html</loc>
+    <loc>http://www.li2ui2.xyz/tags/index.html</loc>
     
     <lastmod>2020-11-19</lastmod>
     
   </url>
   
   <url>
-    <loc>http://example.com/repository/index.html</loc>
+    <loc>http://www.li2ui2.xyz/repository/index.html</loc>
     
     <lastmod>2020-11-19</lastmod>
     
   </url>
   
   <url>
-    <loc>http://example.com/links/index.html</loc>
+    <loc>http://www.li2ui2.xyz/links/index.html</loc>
     
     <lastmod>2020-11-19</lastmod>
     
   </url>
   
   <url>
-    <loc>http://example.com/books/index.html</loc>
+    <loc>http://www.li2ui2.xyz/books/index.html</loc>
     
     <lastmod>2020-11-19</lastmod>
     
   </url>
   
   <url>
-    <loc>http://example.com/categories/index.html</loc>
+    <loc>http://www.li2ui2.xyz/categories/index.html</loc>
     
     <lastmod>2020-11-19</lastmod>
     
   </url>
   
   <url>
-    <loc>http://example.com/about/index.html</loc>
+    <loc>http://www.li2ui2.xyz/about/index.html</loc>
     
     <lastmod>2020-11-19</lastmod>
     
   </url>
   
   <url>
-    <loc>http://example.com/404.html</loc>
+    <loc>http://www.li2ui2.xyz/404.html</loc>
     
     <lastmod>2020-11-19</lastmod>
     
   </url>
   
   <url>
-    <loc>http://example.com/2020/11/19/%E6%B5%8B%E8%AF%95/</loc>
+    <loc>http://www.li2ui2.xyz/2020/11/19/%E6%B5%8B%E8%AF%95/</loc>
     
     <lastmod>2020-11-19</lastmod>
     
   </url>
   
   <url>
-    <loc>http://example.com/2020/11/19/hello-world/</loc>
+    <loc>http://www.li2ui2.xyz/2020/11/19/hello-world/</loc>
     
     <lastmod>2020-11-19</lastmod>
     
@@ -66,7 +66,7 @@
   
 
   <url>
-    <loc>http://example.com/</loc>
+    <loc>http://www.li2ui2.xyz/</loc>
     <lastmod>2020-11-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
