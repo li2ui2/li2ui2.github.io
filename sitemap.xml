@@ -81,7 +81,14 @@
 
   
   <url>
-    <loc>http://www.li2ui2.xyz/tags/OpenWRT-OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/</loc>
+    <loc>http://www.li2ui2.xyz/tags/OpenWRT/</loc>
+    <lastmod>2020-11-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.li2ui2.xyz/tags/OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/</loc>
     <lastmod>2020-11-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
