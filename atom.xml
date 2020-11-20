@@ -6,7 +6,7 @@
   <link href="http://www.li2ui2.xyz/atom.xml" rel="self"/>
   
   <link href="http://www.li2ui2.xyz/"/>
-  <updated>2020-11-20T05:25:18.108Z</updated>
+  <updated>2020-11-19T06:50:14.574Z</updated>
   <id>http://www.li2ui2.xyz/</id>
   
   <author>
@@ -15,19 +15,6 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
-  
-  <entry>
-    <title>SDN\(一\) 用OpenWRT将路由器刷成openflow交换机</title>
-    <link href="http://www.li2ui2.xyz/2020/11/20/SDN-%E4%B8%80-%E7%94%A8OpenWRT%E5%B0%86%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%B7%E6%88%90openflow%E4%BA%A4%E6%8D%A2%E6%9C%BA/"/>
-    <id>http://www.li2ui2.xyz/2020/11/20/SDN-%E4%B8%80-%E7%94%A8OpenWRT%E5%B0%86%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%B7%E6%88%90openflow%E4%BA%A4%E6%8D%A2%E6%9C%BA/</id>
-    <published>2020-11-20T05:25:18.000Z</published>
-    <updated>2020-11-20T05:25:18.108Z</updated>
-    
-    
-    
-    
-    
-  </entry>
   
   <entry>
     <title>测试</title>
