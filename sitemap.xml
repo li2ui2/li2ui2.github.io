@@ -130,20 +130,6 @@
   </url>
   
   <url>
-    <loc>http://www.li2ui2.xyz/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/</loc>
-    <lastmod>2020-11-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
-    <loc>http://www.li2ui2.xyz/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/</loc>
-    <lastmod>2020-11-24</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>http://www.li2ui2.xyz/tags/ping%E5%91%BD%E4%BB%A4%E5%8E%9F%E7%90%86/</loc>
     <lastmod>2020-11-24</lastmod>
     <changefreq>daily</changefreq>
@@ -159,6 +145,20 @@
   
   <url>
     <loc>http://www.li2ui2.xyz/tags/arp%E5%8D%8F%E8%AE%AE/</loc>
+    <lastmod>2020-11-24</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.li2ui2.xyz/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/</loc>
+    <lastmod>2020-11-24</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.li2ui2.xyz/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/</loc>
     <lastmod>2020-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
