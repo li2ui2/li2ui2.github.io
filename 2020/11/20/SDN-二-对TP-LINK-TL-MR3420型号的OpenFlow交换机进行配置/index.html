@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>SDN(二) 对TP-LINK TL-MR3420型号的OpenFlow交换机进行配置 | Liwei&#39;s Page</title>
+  <meta name="description" content="1 引言积跬步以至千里，积怠情以至深渊。 在本人博客SDN(一)中已经详细介绍了如何将TP-LINK TL-MR3420路由器刷成OpenFlow交换机，该无线路由器已具备支持SDN功能。本文将继续介绍并记录近期开展SDN实验的总结，本文主要介绍对OpenFlow交换机进行的相关配置，包括局域网端口配置、VLAN划分、无线端口配置、OpenFlow协议配置等。 2 配置须知2.1 路由器接口介绍官">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDN(二) 对TP-LINK TL-MR3420型号的OpenFlow交换机进行配置">
+<meta property="og:url" content="http://www.li2ui2.xyz/2020/11/20/SDN-%E4%BA%8C-%E5%AF%B9TP-LINK-TL-MR3420%E5%9E%8B%E5%8F%B7%E7%9A%84OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA%E8%BF%9B%E8%A1%8C%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:site_name" content="Liwei&#39;s Tech Blog">
+<meta property="og:description" content="1 引言积跬步以至千里，积怠情以至深渊。 在本人博客SDN(一)中已经详细介绍了如何将TP-LINK TL-MR3420路由器刷成OpenFlow交换机，该无线路由器已具备支持SDN功能。本文将继续介绍并记录近期开展SDN实验的总结，本文主要介绍对OpenFlow交换机进行的相关配置，包括局域网端口配置、VLAN划分、无线端口配置、OpenFlow协议配置等。 2 配置须知2.1 路由器接口介绍官">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191017105446596.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191017142110342.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/201910171418325.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191017142201349.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191019150144719.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191018154221855.png#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191018154649487.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20191018163438129.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2019101915061137.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="article:published_time" content="2020-11-20T05:51:06.000Z">
+<meta property="article:modified_time" content="2020-11-20T06:07:10.087Z">
+<meta property="article:author" content="Li Wei">
+<meta property="article:tag" content="OpenFlow交换机">
+<meta property="article:tag" content="软件定义网络">
+<meta property="article:tag" content="TP-LINK TL-MR3420交换机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20191017105446596.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://www.li2ui2.xyz/2020/11/20/SDN-%E4%BA%8C-%E5%AF%B9TP-LINK-TL-MR3420%E5%9E%8B%E5%8F%B7%E7%9A%84OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA%E8%BF%9B%E8%A1%8C%E9%85%8D%E7%BD%AE/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Liwei&#39;s Tech Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/li2ui2" target="_blank">
+          <img class="img-circle img-rotate" src="/images/liwei.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">你的老李同学</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">R&amp;D Engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Hangzhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/li2ui2" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">人工智能</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6/">版本控制</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/">软件定义网络</a><span class="category-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Facenet%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E7%AE%97%E6%B3%95/" rel="tag">Facenet人脸识别算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gephi%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B9%B3%E5%8F%B0/" rel="tag">Gephi可视化平台</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MTCNN%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95/" rel="tag">MTCNN人脸检测算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mininet/" rel="tag">Mininet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mininet-WiFi/" rel="tag">Mininet-WiFi</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MongoDB/" rel="tag">MongoDB</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">Netgear R6220交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8/" rel="tag">Netgear路由器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">OpenFlow交换机</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenWRT/" rel="tag">OpenWRT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">OpenvSwitch交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/POX%E6%8E%A7%E5%88%B6%E5%99%A8/" rel="tag">POX控制器</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pycharm/" rel="tag">Pycharm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RYU%E6%8E%A7%E5%88%B6%E5%99%A8/" rel="tag">RYU控制器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TP-LINK-TL-MR3420%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">TP-LINK TL-MR3420交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/arp%E5%8D%8F%E8%AE%AE/" rel="tag">arp协议</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/icmp%E5%8D%8F%E8%AE%AE/" rel="tag">icmp协议</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ping%E5%91%BD%E4%BB%A4%E5%8E%9F%E7%90%86/" rel="tag">ping命令原理</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E4%BB%BF%E7%9C%9F%E5%99%A8/" rel="tag">网络仿真器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag">计算机网络</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" rel="tag">软件定义网络</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Facenet%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E7%AE%97%E6%B3%95/" style="font-size: 13px;">Facenet人脸识别算法</a> <a href="/tags/Gephi%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B9%B3%E5%8F%B0/" style="font-size: 13px;">Gephi可视化平台</a> <a href="/tags/Git/" style="font-size: 13px;">Git</a> <a href="/tags/MTCNN%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95/" style="font-size: 13px;">MTCNN人脸检测算法</a> <a href="/tags/Mininet/" style="font-size: 13px;">Mininet</a> <a href="/tags/Mininet-WiFi/" style="font-size: 13px;">Mininet-WiFi</a> <a href="/tags/MongoDB/" style="font-size: 13px;">MongoDB</a> <a href="/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">Netgear R6220交换机</a> <a href="/tags/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 13px;">Netgear路由器</a> <a href="/tags/OpenCV/" style="font-size: 13px;">OpenCV</a> <a href="/tags/OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13.33px;">OpenFlow交换机</a> <a href="/tags/OpenWRT/" style="font-size: 13px;">OpenWRT</a> <a href="/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">OpenvSwitch交换机</a> <a href="/tags/POX%E6%8E%A7%E5%88%B6%E5%99%A8/" style="font-size: 13.33px;">POX控制器</a> <a href="/tags/Pycharm/" style="font-size: 13px;">Pycharm</a> <a href="/tags/Python/" style="font-size: 13.67px;">Python</a> <a href="/tags/RYU%E6%8E%A7%E5%88%B6%E5%99%A8/" style="font-size: 13px;">RYU控制器</a> <a href="/tags/TP-LINK-TL-MR3420%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">TP-LINK TL-MR3420交换机</a> <a href="/tags/arp%E5%8D%8F%E8%AE%AE/" style="font-size: 13px;">arp协议</a> <a href="/tags/icmp%E5%8D%8F%E8%AE%AE/" style="font-size: 13px;">icmp协议</a> <a href="/tags/ping%E5%91%BD%E4%BB%A4%E5%8E%9F%E7%90%86/" style="font-size: 13px;">ping命令原理</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 13.33px;">树莓派</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E4%BB%BF%E7%9C%9F%E5%99%A8/" style="font-size: 13px;">网络仿真器</a> <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 13px;">计算机网络</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" style="font-size: 14px;">软件定义网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">十一月 2020</a><span class="archive-list-count">6</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8%E6%95%91%E7%A0%96%E6%95%99%E7%A8%8B/" class="title">Netgear路由器救砖教程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:52:06.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/%E6%A0%91%E8%8E%93%E6%B4%BE-%E4%BA%8C-%E6%A0%91%E8%8E%93%E6%B4%BE%E5%BC%80%E5%90%AFVNC%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5%E6%9C%8D%E5%8A%A1/" class="title">树莓派(二) 树莓派开启VNC远程连接服务</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:48:17.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/%E6%A0%91%E8%8E%93%E6%B4%BE-%E4%B8%80-%E6%A0%91%E8%8E%93%E6%B4%BE%E4%B8%AD%E7%9A%84%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98/" class="title">树莓派(一) 树莓派中的网络配置问题</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:47:49.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Pytharm%E4%B8%AD%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%9A%84%E4%BD%BF%E7%94%A8/" class="title">Pytharm中关于版本控制的使用</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:45:35.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Python-%E5%9B%9B-Python%E4%B8%AD%E7%9A%84%E9%97%AD%E5%8C%85%E5%87%BD%E6%95%B0%E3%80%81%E5%8F%AF%E5%8F%98%E5%8F%82%E6%95%B0%E5%92%8C%E8%A3%85%E9%A5%B0%E5%99%A8/" class="title">Python(四) Python中的闭包函数、可变参数和装饰器</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:43:54.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-SDN-二-对TP-LINK-TL-MR3420型号的OpenFlow交换机进行配置" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      SDN(二) 对TP-LINK TL-MR3420型号的OpenFlow交换机进行配置
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/11/20/SDN-%E4%BA%8C-%E5%AF%B9TP-LINK-TL-MR3420%E5%9E%8B%E5%8F%B7%E7%9A%84OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA%E8%BF%9B%E8%A1%8C%E9%85%8D%E7%BD%AE/" class="article-date">
+	  <time datetime="2020-11-20T05:51:06.000Z" itemprop="datePublished">2020-11-20</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/">软件定义网络</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">OpenFlow交换机</a>, <a class="article-tag-link-link" href="/tags/TP-LINK-TL-MR3420%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">TP-LINK TL-MR3420交换机</a>, <a class="article-tag-link-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" rel="tag">软件定义网络</a>
+  </span>
+
+
+        
+
+	<span class="article-read hidden-xs">
+    	<i class="icon icon-eye-fill" aria-hidden="true"></i>
+    	<span id="/2020/11/20/SDN-%E4%BA%8C-%E5%AF%B9TP-LINK-TL-MR3420%E5%9E%8B%E5%8F%B7%E7%9A%84OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA%E8%BF%9B%E8%A1%8C%E9%85%8D%E7%BD%AE/" class="leancloud_visitors"  data-flag-title="SDN(二) 对TP-LINK TL-MR3420型号的OpenFlow交换机进行配置">
+			<span class="leancloud-visitors-count">0</span>
+		</span>
+    </span>
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/11/20/SDN-%E4%BA%8C-%E5%AF%B9TP-LINK-TL-MR3420%E5%9E%8B%E5%8F%B7%E7%9A%84OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA%E8%BF%9B%E8%A1%8C%E9%85%8D%E7%BD%AE/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="1-引言"><a href="#1-引言" class="headerlink" title="1 引言"></a>1 引言</h1><p>积跬步以至千里，积怠情以至深渊。</p>
+<p>在本人博客<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42094589/article/details/102562634">SDN(一)</a>中已经详细介绍了如何将TP-LINK TL-MR3420路由器刷成OpenFlow交换机，该无线路由器已具备支持SDN功能。本文将继续介绍并记录近期开展SDN实验的总结，本文主要介绍对OpenFlow交换机进行的相关配置，包括局域网端口配置、VLAN划分、无线端口配置、OpenFlow协议配置等。</p>
+<h1 id="2-配置须知"><a href="#2-配置须知" class="headerlink" title="2 配置须知"></a>2 配置须知</h1><h2 id="2-1-路由器接口介绍"><a href="#2-1-路由器接口介绍" class="headerlink" title="2.1 路由器接口介绍"></a>2.1 路由器接口介绍</h2><p><a target="_blank" rel="noopener" href="https://oldwiki.archive.openwrt.org/zh-cn/doc/uci/network/switch">官网</a>给出了路由器设备内部构造图，介绍了基本接口。常见的无线路由器一般都有一个WAN口，也就是连接到外部网络的接口，其余2-4个口为LAN口，用来连接普通局域网，内部有一个网络交换机芯片，专门处理LAN接口之间的信息交换。通常无线路由的WAN口和LAN之间的路由工作模式一般都采用NAT方式。</p>
+<p>这里简单介绍什么是<strong>NAT</strong>，NAT为私有网络服务，该网络中的主机使用私有IP地址，当私有网络内部的主机与外部Internet通信时，网关路由器负责将私有IP地址转换为全球IP地址，以便取得通信。</p>
+<p>要了解交换机接口相关信息，需要使用到<em>swconfig</em>配置命令，使用该命令查看TL-MR3420接口信息如下图所示，eth0一共有5个接口，Port 0为CPU所用，当前状态为up开启状态；其余四个接口用于连接外部设备，为有线接口Port1~Port4。其中由于正在连接测试，Port1状态为up开启状态，其余三个接口为down未连接状态。<br><img src="https://img-blog.csdnimg.cn/20191017105446596.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<h2 id="2-2-待配置文件介绍"><a href="#2-2-待配置文件介绍" class="headerlink" title="2.2 待配置文件介绍"></a>2.2 待配置文件介绍</h2><p>要配置的文件有三个，分别是<strong>network</strong>,<strong>openflow</strong>,以及<strong>wireless</strong>，它们都位于路由器的/etc/config目录下。openflow文件初始都一样，wireless基本也大同小异，这两个文件非常容易配置（若需要用OpenFlow管理无线网络的话，还需要配置/etc/config/wireless）。比较困难的是network文件，不同路由器之间可能差别比较大。</p>
+<h3 id="network文件"><a href="#network文件" class="headerlink" title="network文件"></a>network文件</h3><p>network文件内容如下图所示，其中各个部分表示为：</p>
+<ul>
+<li>7表示创建一个vlan，option vlan ‘1’和option ports ‘0 1 2 3 4’<br>这两句，是说创建的vlan编号为1，路由器的端口0、1、2、3、4这个vlan中；</li>
+<li>3中的option ifname ‘eth0’ 即是说，当前eth0网卡下的几个端口处于同一个vlan配置的属性，所以目前每一个端口1、2、3、4任意一个接口接上网线都可以访问内网192.168.1.1。<em>可用eth0.X表示vlanX，即端口X；</em></li>
+<li>4中的option ifname ‘eth1’是说4这一部分配置的是wan的属性。<br><img src="https://img-blog.csdnimg.cn/20191017142110342.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><h3 id="openflow文件"><a href="#openflow文件" class="headerlink" title="openflow文件"></a>openflow文件</h3>这个文件相较于network简单多了，其中<strong>dpid</strong>就是一个编号，在网络中只有一个openflow路由器时不用修改；<strong>ofports</strong>即是需要用openflow功能管理的vlan；<strong>ofctl</strong>是SDN控制器的相关信息；<strong>mode</strong>是openflow协议的工作方式，有inband模式和outoband模式，在inband模式下，控制器与openflow交换机连接的网口既可以有控制流量，又可以有数据流量。而outoband模式下，控制器与openflow交换机连接的网口只能有控制流量。<br><img src="https://img-blog.csdnimg.cn/201910171418325.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><h3 id="wireless文件"><a href="#wireless文件" class="headerlink" title="wireless文件"></a>wireless文件</h3>修改/etc/config/wireless，将option disable 1为关闭路由器无线功能，option disable 0为开启路由器无线功能<br><img src="https://img-blog.csdnimg.cn/20191017142201349.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><h1 id="3-MR3420对应文件配置"><a href="#3-MR3420对应文件配置" class="headerlink" title="3 MR3420对应文件配置"></a>3 MR3420对应文件配置</h1><img src="https://img-blog.csdnimg.cn/20191019150144719.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"><h2 id="3-1-etc-config-network文件"><a href="#3-1-etc-config-network文件" class="headerlink" title="3.1 /etc/config/network文件"></a>3.1 /etc/config/network文件</h2></li>
+</ul>
+<p><strong>config interface</strong> 用来配置局域网端口。eth0.1用来连接内网，也可以用来连接控制器，只要设置控制器IP地址与网关；其余端口用于连接主机。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">config interface <span class="string">&#x27;loopback&#x27;</span></span><br><span class="line">        option ifname <span class="string">&#x27;lo&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span></span><br><span class="line">        option ipaddr <span class="string">&#x27;127.0.0.1&#x27;</span></span><br><span class="line">        option netmask <span class="string">&#x27;255.0.0.0&#x27;</span></span><br><span class="line"></span><br><span class="line">config <span class="built_in">globals</span> <span class="string">&#x27;globals&#x27;</span></span><br><span class="line">        option ula_prefix <span class="string">&#x27;fd84:aa1a:857d::/48&#x27;</span></span><br><span class="line"></span><br><span class="line">config interface <span class="string">&#x27;lan&#x27;</span></span><br><span class="line">        option ifname <span class="string">&#x27;eth0.1&#x27;</span></span><br><span class="line">        option force_link <span class="string">&#x27;1&#x27;</span></span><br><span class="line">        option <span class="built_in">type</span> <span class="string">&#x27;bridge&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span></span><br><span class="line">        option ipaddr <span class="string">&#x27;192.168.1.1&#x27;</span></span><br><span class="line">        option netmask <span class="string">&#x27;255.255.255.0&#x27;</span></span><br><span class="line">        option ip6assign <span class="string">&#x27;60&#x27;</span></span><br><span class="line"></span><br><span class="line">config interface <span class="string">&#x27;wan&#x27;</span>                </span><br><span class="line">        option ifname <span class="string">&#x27;eth1&#x27;</span>        </span><br><span class="line">        option proto <span class="string">&#x27;dhcp&#x27;</span>                    </span><br><span class="line"></span><br><span class="line">config interface <span class="string">&#x27;wan6&#x27;</span>             </span><br><span class="line">        option ifname <span class="string">&#x27;eth1&#x27;</span>                   </span><br><span class="line">        option proto <span class="string">&#x27;dhcpv6&#x27;</span>         </span><br><span class="line"></span><br><span class="line">config interface                </span><br><span class="line">        option ifname <span class="string">&#x27;eth0.2&#x27;</span>        </span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span>       </span><br><span class="line"></span><br><span class="line">config interface                      </span><br><span class="line">        option ifname <span class="string">&#x27;eth0.3&#x27;</span>      </span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span>      </span><br><span class="line"></span><br><span class="line">config interface                </span><br><span class="line">        option ifname <span class="string">&#x27;eth0.4&#x27;</span>        </span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span> </span><br><span class="line"></span><br><span class="line">config switch                                  </span><br><span class="line">        option name <span class="string">&#x27;switch0&#x27;</span>         </span><br><span class="line">        option reset <span class="string">&#x27;1&#x27;</span>                       </span><br><span class="line">        option enable_vlan <span class="string">&#x27;1&#x27;</span>  </span><br><span class="line"></span><br><span class="line">config switch_vlan                  </span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span> </span><br><span class="line">        option vlan <span class="string">&#x27;1&#x27;</span>               </span><br><span class="line">        option vid <span class="string">&#x27;1&#x27;</span>              </span><br><span class="line">        option ports <span class="string">&#x27;0t 1&#x27;</span>        </span><br><span class="line"></span><br><span class="line">config switch_vlan              </span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span>       </span><br><span class="line">        option vlan <span class="string">&#x27;2&#x27;</span>       </span><br><span class="line">        option vid <span class="string">&#x27;2&#x27;</span>         </span><br><span class="line">        option ports <span class="string">&#x27;0t 2&#x27;</span></span><br><span class="line"></span><br><span class="line">config switch_vlan                  </span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span> </span><br><span class="line">        option vlan <span class="string">&#x27;3&#x27;</span>               </span><br><span class="line">        option vid <span class="string">&#x27;3&#x27;</span>              </span><br><span class="line">        option ports <span class="string">&#x27;0t 3&#x27;</span>        </span><br><span class="line"></span><br><span class="line">config switch_vlan              </span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span>       </span><br><span class="line">        option vlan <span class="string">&#x27;4&#x27;</span>        </span><br><span class="line">        option vid <span class="string">&#x27;4&#x27;</span>         </span><br><span class="line">        option ports <span class="string">&#x27;0t 4&#x27;</span> </span><br></pre></td></tr></table></figure>
+<p><strong>config switch_vlan</strong>为配置局域网Vlan端口。Vlan划分的端口中<strong>0t</strong>代表MR3420型号的cpu，不同路由之间不同，可以用swconfig命令查看，拔掉所有的端口后仍然显示连接的就是cpu端口。</p>
+<p>划分完后，<strong>重启网络</strong>，然后再次查看eth0信息，看是否划分正确。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/etc/init.d/network restart</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-2-etc-config-wireless文件"><a href="#3-2-etc-config-wireless文件" class="headerlink" title="3.2 /etc/config/wireless文件"></a>3.2 /etc/config/wireless文件</h2><p>把wifi-iface里的<strong>option network lan</strong>这行去掉就行，这样连接wifi时就不会与eth0,1(lan接口)处于同一个子网，用在转发层而不是控制层。wifi-device的名字原本为radio0，有些型号的路由器这里必须为wlan0否则无法用OpenFlow管理wifi。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">config wifi-device  wlan0</span><br><span class="line">        option <span class="built_in">type</span>     mac80211</span><br><span class="line">        option channel  <span class="number">11</span></span><br><span class="line">        option hwmode   11g</span><br><span class="line">        option path     <span class="string">&#x27;pci0000:00/0000:00:00.0&#x27;</span></span><br><span class="line">        option htmode   HT20</span><br><span class="line">        <span class="comment"># REMOVE THIS LINE TO ENABLE WIFI:</span></span><br><span class="line">        option disabled <span class="number">0</span></span><br><span class="line"></span><br><span class="line">config wifi-iface</span><br><span class="line">        option device   wlan0</span><br><span class="line">        option mode     ap</span><br><span class="line">        option ssid     MR3420_OpenWRT</span><br><span class="line">        option encryption none</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="3-3-etc-config-openflow文件"><a href="#3-3-etc-config-openflow文件" class="headerlink" title="3.3 /etc/config/openflow文件"></a>3.3 /etc/config/openflow文件</h2><p>要修改两个地方，第一个是<strong>ofctl</strong>选项里要填上控制器正确的ip地址，可以用网线连接主机和端口1，在linux主机上用ifconfig命令来查看分配到的ip地址。第二个是<strong>ofports</strong>选项，填上所有用作openflow交换机端口。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">config <span class="string">&#x27;ofswitch&#x27;</span></span><br><span class="line">        option <span class="string">&#x27;dp&#x27;</span> <span class="string">&#x27;dp0&#x27;</span></span><br><span class="line">        option <span class="string">&#x27;dpid&#x27;</span> <span class="string">&#x27;000000000001&#x27;</span></span><br><span class="line">        option <span class="string">&#x27;ofports&#x27;</span> <span class="string">&#x27;wlan0 eth0.2 eth0.3 eth0.4 eth1&#x27;</span></span><br><span class="line">        option <span class="string">&#x27;ofctl&#x27;</span> <span class="string">&#x27;tcp:192.168.1.10:6633&#x27;</span></span><br><span class="line">        option <span class="string">&#x27;mode&#x27;</span>  <span class="string">&#x27;outofband&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="4-测试"><a href="#4-测试" class="headerlink" title="4 测试"></a>4 测试</h1><h2 id="4-1-RYU控制器验证"><a href="#4-1-RYU控制器验证" class="headerlink" title="4.1 RYU控制器验证"></a>4.1 RYU控制器验证</h2><p>在Ubuntu上使用RYU控制器进行验证，若运行控制器后没有出错，则证明已连接上控制器。首先随机选择一个控制器的脚本进行运行</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ryu-manager simple_switch_13.py</span><br></pre></td></tr></table></figure>
+<p>运行成功后，显示结果如下<br><img src="https://img-blog.csdnimg.cn/20191018154221855.png#pic_center" alt="在这里插入图片描述"><br>接着，需要开启OpenFlow功能，但开启时时需要运行/etc/functions.sh文件，而/etc下没有该文件，所以要将/lib/functions.sh复制到/etc下，运行如下命令：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cp /lib/functions.sh /etc</span><br></pre></td></tr></table></figure>
+<p>重启路由器后，通过以下命令开和关闭openflow功能</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/etc/init.d/openflow start</span><br><span class="line">/etc/init.d/openflow stop</span><br></pre></td></tr></table></figure>
+<p>开启路由器的OpenFlow功能后，显示结果如下图，已成功连接上控制器，证明配置成功，接下来即可验证控制器的各种功能了。祝好运！<br><img src="https://img-blog.csdnimg.cn/20191018154649487.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<h2 id="4-2-POX控制器验证"><a href="#4-2-POX控制器验证" class="headerlink" title="4.2 POX控制器验证"></a>4.2 POX控制器验证</h2><p>POX控制器当前仅支持到OpenFlow1.0版本，而我们的OpenFlow交换机为1.3版本。为验证POX控制器的不适用，进行实验结果如下图所示。<br><img src="https://img-blog.csdnimg.cn/20191018163438129.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+<h2 id="4-3-其他验证"><a href="#4-3-其他验证" class="headerlink" title="4.3 其他验证"></a>4.3 其他验证</h2><p>除了使用TL-MR3420型号的OpenFlow交换机进行实验外，本文还进行了一些其他机器的实验，和以上内容没有太大关联。<br><strong>RYU控制器与OpenFlow1.0版本的路由器：</strong><br><img src="https://img-blog.csdnimg.cn/2019101915061137.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></p>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://www.li2ui2.xyz/2020/11/20/SDN-%E4%BA%8C-%E5%AF%B9TP-LINK-TL-MR3420%E5%9E%8B%E5%8F%B7%E7%9A%84OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA%E8%BF%9B%E8%A1%8C%E9%85%8D%E7%BD%AE/" title="SDN(二) 对TP-LINK TL-MR3420型号的OpenFlow交换机进行配置" target="_blank" rel="external">http://www.li2ui2.xyz/2020/11/20/SDN-%E4%BA%8C-%E5%AF%B9TP-LINK-TL-MR3420%E5%9E%8B%E5%8F%B7%E7%9A%84OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA%E8%BF%9B%E8%A1%8C%E9%85%8D%E7%BD%AE/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/li2ui2" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/liwei.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/li2ui2" target="_blank"><span class="text-dark">你的老李同学</span><small class="ml-1x">R&amp;D Engineer</small></a></h3>
+        <div>每天都要学习到晕厥</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2020/11/20/SDN-%E4%B8%89-RYU%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9B%B8%E5%85%B3%E7%AC%94%E8%AE%B0/" title="SDN(三) RYU控制器相关笔记"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2020/11/20/SDN-%E4%B8%80-%E7%94%A8OpenWRT%E5%B0%86%E8%B7%AF%E7%94%B1%E5%99%A8%E5%88%B7%E6%88%90openflow%E4%BA%A4%E6%8D%A2%E6%9C%BA/" title="SDN(一) 用OpenWRT将路由器刷成openflow交换机"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/li2ui2" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2022 Li Wei
+        
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: true,
+    appId: 'C4mjAEf6eUerQGDf0h0RsjNe-gzGzoHsz',
+    appKey: 'CUeJRp85k5GiRkjjuOuXggjQ',
+    placeholder: '说点什么...',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: true
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

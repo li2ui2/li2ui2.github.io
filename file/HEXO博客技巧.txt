@@ -1,0 +1,9 @@
+1. 创建博客
+	在git bash中执行如下命令，例如：
+	hexo n "Mininet-WIFI(一) Mininet学习笔记之基本操作"
+	此时会在目录E:\Blog\blog\source\_posts下生成对应的md文件，打开此文件，写入内容
+2. 部署博客
+	在git bash中执依次执行如下命令：
+	hexo clean
+	hexo g
+	hexo d

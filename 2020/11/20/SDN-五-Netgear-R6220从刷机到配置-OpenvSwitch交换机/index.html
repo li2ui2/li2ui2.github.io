@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>SDN(五) Netgear R6220从刷机到配置 OpenvSwitch交换机 | Liwei&#39;s Page</title>
+  <meta name="description" content="1 引言积跬步以至千里，积怠情以至深渊。 本文将介绍在Netgear R6220路由器上进行基于OpenVswitch的openflow实验。路由器是刷了编译了OpenvSwitch的OpenWRT固件的，具体可参考刷机教程。本文主要以R6220为例介绍从刷机到配置 OpenvSwitch交换机的整个过程。 2 Netgear R6220刷机 收到原厂Netgear R6220路由器后，用一根网线">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SDN(五) Netgear R6220从刷机到配置 OpenvSwitch交换机">
+<meta property="og:url" content="http://www.li2ui2.xyz/2020/11/20/SDN-%E4%BA%94-Netgear-R6220%E4%BB%8E%E5%88%B7%E6%9C%BA%E5%88%B0%E9%85%8D%E7%BD%AE-OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/index.html">
+<meta property="og:site_name" content="Liwei&#39;s Tech Blog">
+<meta property="og:description" content="1 引言积跬步以至千里，积怠情以至深渊。 本文将介绍在Netgear R6220路由器上进行基于OpenVswitch的openflow实验。路由器是刷了编译了OpenvSwitch的OpenWRT固件的，具体可参考刷机教程。本文主要以R6220为例介绍从刷机到配置 OpenvSwitch交换机的整个过程。 2 Netgear R6220刷机 收到原厂Netgear R6220路由器后，用一根网线">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20200420171245108.PNG?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9zMS5heDF4LmNvbS8yMDIwLzA0LzEyL0dPUUhQQS5qcGc?x-oss-process=image/format,png#pic_center">
+<meta property="og:image" content="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9zMS5heDF4LmNvbS8yMDIwLzA0LzEyL0dPUVQ1ZC5qcGc?x-oss-process=image/format,png#pic_center">
+<meta property="article:published_time" content="2020-11-20T05:58:06.000Z">
+<meta property="article:modified_time" content="2020-11-20T06:08:26.948Z">
+<meta property="article:author" content="Li Wei">
+<meta property="article:tag" content="软件定义网络">
+<meta property="article:tag" content="Netgear R6220交换机">
+<meta property="article:tag" content="OpenvSwitch交换机">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20200420171245108.PNG?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://www.li2ui2.xyz/2020/11/20/SDN-%E4%BA%94-Netgear-R6220%E4%BB%8E%E5%88%B7%E6%9C%BA%E5%88%B0%E9%85%8D%E7%BD%AE-OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Liwei&#39;s Tech Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/li2ui2" target="_blank">
+          <img class="img-circle img-rotate" src="/images/liwei.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">你的老李同学</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">R&amp;D Engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Hangzhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/li2ui2" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">人工智能</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6/">版本控制</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/">软件定义网络</a><span class="category-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Facenet%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E7%AE%97%E6%B3%95/" rel="tag">Facenet人脸识别算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gephi%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B9%B3%E5%8F%B0/" rel="tag">Gephi可视化平台</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MTCNN%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95/" rel="tag">MTCNN人脸检测算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mininet/" rel="tag">Mininet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mininet-WiFi/" rel="tag">Mininet-WiFi</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MongoDB/" rel="tag">MongoDB</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">Netgear R6220交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8/" rel="tag">Netgear路由器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">OpenFlow交换机</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenWRT/" rel="tag">OpenWRT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">OpenvSwitch交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/POX%E6%8E%A7%E5%88%B6%E5%99%A8/" rel="tag">POX控制器</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pycharm/" rel="tag">Pycharm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RYU%E6%8E%A7%E5%88%B6%E5%99%A8/" rel="tag">RYU控制器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TP-LINK-TL-MR3420%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">TP-LINK TL-MR3420交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/arp%E5%8D%8F%E8%AE%AE/" rel="tag">arp协议</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/icmp%E5%8D%8F%E8%AE%AE/" rel="tag">icmp协议</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ping%E5%91%BD%E4%BB%A4%E5%8E%9F%E7%90%86/" rel="tag">ping命令原理</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E4%BB%BF%E7%9C%9F%E5%99%A8/" rel="tag">网络仿真器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag">计算机网络</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" rel="tag">软件定义网络</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Facenet%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E7%AE%97%E6%B3%95/" style="font-size: 13px;">Facenet人脸识别算法</a> <a href="/tags/Gephi%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B9%B3%E5%8F%B0/" style="font-size: 13px;">Gephi可视化平台</a> <a href="/tags/Git/" style="font-size: 13px;">Git</a> <a href="/tags/MTCNN%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95/" style="font-size: 13px;">MTCNN人脸检测算法</a> <a href="/tags/Mininet/" style="font-size: 13px;">Mininet</a> <a href="/tags/Mininet-WiFi/" style="font-size: 13px;">Mininet-WiFi</a> <a href="/tags/MongoDB/" style="font-size: 13px;">MongoDB</a> <a href="/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">Netgear R6220交换机</a> <a href="/tags/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 13px;">Netgear路由器</a> <a href="/tags/OpenCV/" style="font-size: 13px;">OpenCV</a> <a href="/tags/OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13.33px;">OpenFlow交换机</a> <a href="/tags/OpenWRT/" style="font-size: 13px;">OpenWRT</a> <a href="/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">OpenvSwitch交换机</a> <a href="/tags/POX%E6%8E%A7%E5%88%B6%E5%99%A8/" style="font-size: 13.33px;">POX控制器</a> <a href="/tags/Pycharm/" style="font-size: 13px;">Pycharm</a> <a href="/tags/Python/" style="font-size: 13.67px;">Python</a> <a href="/tags/RYU%E6%8E%A7%E5%88%B6%E5%99%A8/" style="font-size: 13px;">RYU控制器</a> <a href="/tags/TP-LINK-TL-MR3420%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">TP-LINK TL-MR3420交换机</a> <a href="/tags/arp%E5%8D%8F%E8%AE%AE/" style="font-size: 13px;">arp协议</a> <a href="/tags/icmp%E5%8D%8F%E8%AE%AE/" style="font-size: 13px;">icmp协议</a> <a href="/tags/ping%E5%91%BD%E4%BB%A4%E5%8E%9F%E7%90%86/" style="font-size: 13px;">ping命令原理</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 13.33px;">树莓派</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E4%BB%BF%E7%9C%9F%E5%99%A8/" style="font-size: 13px;">网络仿真器</a> <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 13px;">计算机网络</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" style="font-size: 14px;">软件定义网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">十一月 2020</a><span class="archive-list-count">6</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8%E6%95%91%E7%A0%96%E6%95%99%E7%A8%8B/" class="title">Netgear路由器救砖教程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:52:06.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/%E6%A0%91%E8%8E%93%E6%B4%BE-%E4%BA%8C-%E6%A0%91%E8%8E%93%E6%B4%BE%E5%BC%80%E5%90%AFVNC%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5%E6%9C%8D%E5%8A%A1/" class="title">树莓派(二) 树莓派开启VNC远程连接服务</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:48:17.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/%E6%A0%91%E8%8E%93%E6%B4%BE-%E4%B8%80-%E6%A0%91%E8%8E%93%E6%B4%BE%E4%B8%AD%E7%9A%84%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98/" class="title">树莓派(一) 树莓派中的网络配置问题</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:47:49.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Pytharm%E4%B8%AD%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%9A%84%E4%BD%BF%E7%94%A8/" class="title">Pytharm中关于版本控制的使用</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:45:35.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Python-%E5%9B%9B-Python%E4%B8%AD%E7%9A%84%E9%97%AD%E5%8C%85%E5%87%BD%E6%95%B0%E3%80%81%E5%8F%AF%E5%8F%98%E5%8F%82%E6%95%B0%E5%92%8C%E8%A3%85%E9%A5%B0%E5%99%A8/" class="title">Python(四) Python中的闭包函数、可变参数和装饰器</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:43:54.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-SDN-五-Netgear-R6220从刷机到配置-OpenvSwitch交换机" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      SDN(五) Netgear R6220从刷机到配置 OpenvSwitch交换机
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2020/11/20/SDN-%E4%BA%94-Netgear-R6220%E4%BB%8E%E5%88%B7%E6%9C%BA%E5%88%B0%E9%85%8D%E7%BD%AE-OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" class="article-date">
+	  <time datetime="2020-11-20T05:58:06.000Z" itemprop="datePublished">2020-11-20</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/">软件定义网络</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">Netgear R6220交换机</a>, <a class="article-tag-link-link" href="/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">OpenvSwitch交换机</a>, <a class="article-tag-link-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" rel="tag">软件定义网络</a>
+  </span>
+
+
+        
+
+	<span class="article-read hidden-xs">
+    	<i class="icon icon-eye-fill" aria-hidden="true"></i>
+    	<span id="/2020/11/20/SDN-%E4%BA%94-Netgear-R6220%E4%BB%8E%E5%88%B7%E6%9C%BA%E5%88%B0%E9%85%8D%E7%BD%AE-OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" class="leancloud_visitors"  data-flag-title="SDN(五) Netgear R6220从刷机到配置 OpenvSwitch交换机">
+			<span class="leancloud-visitors-count">0</span>
+		</span>
+    </span>
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2020/11/20/SDN-%E4%BA%94-Netgear-R6220%E4%BB%8E%E5%88%B7%E6%9C%BA%E5%88%B0%E9%85%8D%E7%BD%AE-OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="1-引言"><a href="#1-引言" class="headerlink" title="1 引言"></a>1 引言</h1><p>积跬步以至千里，积怠情以至深渊。</p>
+<p>本文将介绍在Netgear R6220路由器上进行基于OpenVswitch的openflow实验。路由器是刷了编译了OpenvSwitch的OpenWRT固件的，具体可参考<a target="_blank" rel="noopener" href="https://aisoa.cn/post-2531.html">刷机教程</a>。本文主要以R6220为例介绍从刷机到配置 OpenvSwitch交换机的整个过程。</p>
+<h1 id="2-Netgear-R6220刷机"><a href="#2-Netgear-R6220刷机" class="headerlink" title="2 Netgear R6220刷机"></a>2 Netgear R6220刷机</h1><ul>
+<li>收到原厂Netgear R6220路由器后，用一根网线接上笔记本网口和路由器LAN口。</li>
+<li>打开浏览器，输入192.168.1.1，进入路由器原厂管理界面，设置好路由器的管理密码。</li>
+<li>在浏览器中输入网址<code>http://192.168.1.1/setup.cgi?todo=debug</code>，并回车，开启路由器的telnet功能。</li>
+<li>Windows系统下打开本地命令提示符（其他系统也可以），输入<code>telnet 192.168.1.1</code>，终端登录路由器，用户名为<code>admin</code>，密码为上边设置的。</li>
+<li>进入后，将带有编译好的固件（编译了OpenVSwitch的OpenWRT固件，可以到我的云盘中提取，链接：<code>https://pan.baidu.com/s/1Y3tq0nsxfi5_wX7FO4xXCw </code> ，提取码：<code>ew7d</code>）的U盘插入路由器USB口。</li>
+<li>而后，进入…./ramips/mt7621，开始刷入固件，操作步骤如下截图所示。<br><img src="https://img-blog.csdnimg.cn/20200420171245108.PNG?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70#pic_center" alt="在这里插入图片描述"></li>
+</ul>
+<p><strong>NT：一定要先刷kernel，再刷rootfs。同时在刷固件过程中一定不要插拔网线，否则变砖！！</strong></p>
+<ul>
+<li>刷完固件重启路由器，耐心等待重新获取得到网卡信息，首先重新以网页方式登录路由器新固件OpenWRT的管理界面（方法为在网页中输入192.168.1.1），进入网页后，<strong>只设置密码而不做其他多余操作（例如进入网络接口界面，因为一旦进入就会默认生成一次配置，会与之后的终端配置造成冲突）</strong>，否则影响最终的配置，导致路由器变砖。</li>
+<li>紧接着，ssh进入OprnWRT系统，用户名为<code>root</code>，密码为上一步设置的密码。</li>
+<li>进入/etc/config下配置network文件和wireless文件，文件的配置需要根据物理设备的网卡信息进行正确配置，因此首先摸清Netgear R6220的网络配置信息尤为关键，否则将导致路由器变砖，或者无法配置好网桥信息。以下部分，<strong>第3节</strong>主要介绍物理设备网络信息，<strong>第4节</strong>主要介绍具体的network文件和wireless文件配置，<strong>第5节</strong>主要介绍针对第4节的配置信息进行的网桥搭建过程。</li>
+</ul>
+<p> <strong>NT：刷机变砖请参考本人博客<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42094589/article/details/105615828">Netgear救砖教程</a>。</strong></p>
+<h1 id="3-Netgear-R6220网络配置信息介绍"><a href="#3-Netgear-R6220网络配置信息介绍" class="headerlink" title="3 Netgear R6220网络配置信息介绍"></a>3 Netgear R6220网络配置信息介绍</h1><p><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9zMS5heDF4LmNvbS8yMDIwLzA0LzEyL0dPUUhQQS5qcGc?x-oss-process=image/format,png#pic_center" alt="在这里插入图片描述"><br><img src="https://imgconvert.csdnimg.cn/aHR0cHM6Ly9zMS5heDF4LmNvbS8yMDIwLzA0LzEyL0dPUVQ1ZC5qcGc?x-oss-process=image/format,png#pic_center" alt="在这里插入图片描述"></p>
+<h1 id="4-Netgear-R6220路由器的网络文件配置"><a href="#4-Netgear-R6220路由器的网络文件配置" class="headerlink" title="4 Netgear R6220路由器的网络文件配置"></a>4 Netgear R6220路由器的网络文件配置</h1><h2 id="4-1-network文件配置"><a href="#4-1-network文件配置" class="headerlink" title="4.1 network文件配置"></a>4.1 network文件配置</h2><p>关于配置文件中的配置代码对应功能介绍，请参考本人博客<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42094589/article/details/102600013">SDN(二)</a>，本人对于network文件的配置如下。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 本地回环地址</span></span><br><span class="line">config interface <span class="string">&#x27;loopback&#x27;</span>             </span><br><span class="line">        option ifname <span class="string">&#x27;lo&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span></span><br><span class="line">        option ipaddr <span class="string">&#x27;127.0.0.1&#x27;</span></span><br><span class="line">        option netmask <span class="string">&#x27;255.0.0.0&#x27;</span></span><br><span class="line"></span><br><span class="line">config <span class="built_in">globals</span> <span class="string">&#x27;globals&#x27;</span></span><br><span class="line">        option ula_prefix <span class="string">&#x27;fd22:7199:e878::/48&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 划分lan口</span></span><br><span class="line">config interface <span class="string">&#x27;lan&#x27;</span>  <span class="comment"># 将LAN1配置成内网地址</span></span><br><span class="line">        option <span class="built_in">type</span> <span class="string">&#x27;bridge&#x27;</span></span><br><span class="line">        option ifname <span class="string">&#x27;eth0.3&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span></span><br><span class="line">        option ipaddr <span class="string">&#x27;192.168.3.1&#x27;</span></span><br><span class="line">        option netmask <span class="string">&#x27;255.255.255.0&#x27;</span></span><br><span class="line">        option ip6assign <span class="string">&#x27;60&#x27;</span></span><br><span class="line"></span><br><span class="line">config device <span class="string">&#x27;lan_dev&#x27;</span></span><br><span class="line">        option name <span class="string">&#x27;eth0.3&#x27;</span></span><br><span class="line">        option macaddr <span class="string">&#x27;8c:3b:ad:e4:5a:b1&#x27;</span></span><br><span class="line"></span><br><span class="line">config interface <span class="string">&#x27;wan_controller&#x27;</span>  <span class="comment"># wan口配置成控制器地址，该IP地址为运行控制器的主机的网关IP地址</span></span><br><span class="line">        option ifname <span class="string">&#x27;eth0.4&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span></span><br><span class="line">        option ipaddr <span class="string">&#x27;10.12.34.248&#x27;</span>  <span class="comment"># 必须与LAN口在不同网段</span></span><br><span class="line">        option netmask <span class="string">&#x27;255.255.255.0&#x27;</span></span><br><span class="line"></span><br><span class="line">config device <span class="string">&#x27;wan_dev&#x27;</span></span><br><span class="line">        option name <span class="string">&#x27;eth0.4&#x27;</span></span><br><span class="line">        option macaddr <span class="string">&#x27;8c:3b:ad:e4:5a:b0&#x27;</span></span><br><span class="line"></span><br><span class="line">config interface <span class="string">&#x27;wan6&#x27;</span></span><br><span class="line">        option ifname <span class="string">&#x27;eth0.4&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;dhcpv6&#x27;</span></span><br><span class="line"></span><br><span class="line">config interface <span class="string">&#x27;lan2&#x27;</span>   <span class="comment"># 其余LAN口不分配IP地址，作为openflow端口，供OpenVswitch中网桥的端口映射</span></span><br><span class="line">        option ifname <span class="string">&#x27;eth0.2&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span></span><br><span class="line"></span><br><span class="line">config interface <span class="string">&#x27;lan3&#x27;</span></span><br><span class="line">        option ifname <span class="string">&#x27;eth0.1&#x27;</span></span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span></span><br><span class="line"></span><br><span class="line">config interface <span class="string">&#x27;lan4&#x27;</span>                   </span><br><span class="line">        option ifname <span class="string">&#x27;eth0.0&#x27;</span>            </span><br><span class="line">        option proto <span class="string">&#x27;static&#x27;</span>             </span><br><span class="line">                                          </span><br><span class="line">config switch  <span class="comment"># swith，用于R6220的四个LAN口的IP映射           </span></span><br><span class="line">        option name <span class="string">&#x27;switch0&#x27;</span>             </span><br><span class="line">        option reset <span class="string">&#x27;1&#x27;</span>                  </span><br><span class="line">        option enable_vlan <span class="string">&#x27;1&#x27;</span>            </span><br><span class="line">                                          </span><br><span class="line">config switch_vlan  <span class="comment"># 划分vlan                        </span></span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span>           </span><br><span class="line">        option vlan <span class="string">&#x27;0&#x27;</span>                   </span><br><span class="line">        option ports <span class="string">&#x27;0 6t&#x27;</span>               </span><br><span class="line">                                          </span><br><span class="line">config switch_vlan                    </span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span></span><br><span class="line">        option vlan <span class="string">&#x27;1&#x27;</span>            </span><br><span class="line">        option ports <span class="string">&#x27;1 6t&#x27;</span>           </span><br><span class="line">                                          </span><br><span class="line">config switch_vlan             </span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span></span><br><span class="line">        option vlan <span class="string">&#x27;2&#x27;</span>                   </span><br><span class="line">        option ports <span class="string">&#x27;2 6t&#x27;</span>    </span><br><span class="line">                               </span><br><span class="line">config switch_vlan             </span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span></span><br><span class="line">        option vlan <span class="string">&#x27;3&#x27;</span>        </span><br><span class="line">        option ports <span class="string">&#x27;3 6t&#x27;</span>    </span><br><span class="line">                               </span><br><span class="line">config switch_vlan             </span><br><span class="line">        option device <span class="string">&#x27;switch0&#x27;</span></span><br><span class="line">        option vlan <span class="string">&#x27;4&#x27;</span>        </span><br><span class="line">        option ports <span class="string">&#x27;4 6t&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>配置完成后，输入<code>/etc/init.d/network restart</code>进行网络重启。</p>
+<h2 id="4-2-wireless文件配置"><a href="#4-2-wireless文件配置" class="headerlink" title="4.2 wireless文件配置"></a>4.2 wireless文件配置</h2><p>在配置好network后，可参照如下代码进行无线设置（也可以进入网页，直接针对无线进行可视化配置），关于Neatgear中的wireless文件本人配置如下，此时无线和LAN1分配在了同一个网段，因此wifi连接路由器也可以进入内网配置。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">config wifi-device <span class="string">&#x27;radio0&#x27;</span></span><br><span class="line">        option <span class="built_in">type</span> <span class="string">&#x27;mac80211&#x27;</span></span><br><span class="line">        option channel <span class="string">&#x27;11&#x27;</span></span><br><span class="line">        option hwmode <span class="string">&#x27;11g&#x27;</span></span><br><span class="line">        option path <span class="string">&#x27;pci0000:00/0000:00:01.0/0000:02:00.0&#x27;</span></span><br><span class="line">        option htmode <span class="string">&#x27;HT20&#x27;</span></span><br><span class="line">        option country <span class="string">&#x27;00&#x27;</span></span><br><span class="line">        option legacy_rates <span class="string">&#x27;1&#x27;</span></span><br><span class="line"></span><br><span class="line">config wifi-iface <span class="string">&#x27;default_radio0&#x27;</span></span><br><span class="line">        option device <span class="string">&#x27;radio0&#x27;</span></span><br><span class="line">        option network <span class="string">&#x27;lan&#x27;</span>  <span class="comment"># 当要将wlan0配置成无线接口时，不需要分配网段</span></span><br><span class="line">        option mode <span class="string">&#x27;ap&#x27;</span></span><br><span class="line">        option encryption <span class="string">&#x27;none&#x27;</span></span><br><span class="line">        option ssid <span class="string">&#x27;OpenWrt2_0&#x27;</span></span><br><span class="line">        option ifname wlan0  <span class="comment"># 这个wifi接口名称的设置相当重要，需要作为ovs中网桥设置的接口</span></span><br><span class="line"></span><br><span class="line">config wifi-device <span class="string">&#x27;radio1&#x27;</span></span><br><span class="line">        option <span class="built_in">type</span> <span class="string">&#x27;mac80211&#x27;</span></span><br><span class="line">        option channel <span class="string">&#x27;36&#x27;</span></span><br><span class="line">        option hwmode <span class="string">&#x27;11a&#x27;</span></span><br><span class="line">        option path <span class="string">&#x27;pci0000:00/0000:00:00.0/0000:01:00.0&#x27;</span></span><br><span class="line">        option htmode <span class="string">&#x27;VHT80&#x27;</span></span><br><span class="line">        option country <span class="string">&#x27;00&#x27;</span></span><br><span class="line">        option legacy_rates <span class="string">&#x27;1&#x27;</span></span><br><span class="line"></span><br><span class="line">config wifi-iface <span class="string">&#x27;default_radio1&#x27;</span></span><br><span class="line">        option device <span class="string">&#x27;radio1&#x27;</span></span><br><span class="line">        option mode <span class="string">&#x27;ap&#x27;</span></span><br><span class="line">        option encryption <span class="string">&#x27;none&#x27;</span></span><br><span class="line">        option ssid <span class="string">&#x27;OpenWrt2_1&#x27;</span></span><br><span class="line">        option ifname wlan1  <span class="comment"># 这个wifi接口名称的设置相当重要，需要作为ovs中网桥设置的接口</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>配置完成后，再次输入<code>/etc/init.d/network restart</code>进行网络重启。</p>
+<h1 id="5-Netgear-R6220中OpenVswitch的网桥创建及配置"><a href="#5-Netgear-R6220中OpenVswitch的网桥创建及配置" class="headerlink" title="5 Netgear R6220中OpenVswitch的网桥创建及配置"></a>5 Netgear R6220中OpenVswitch的网桥创建及配置</h1><p>针对network中的配置，网桥的对应配置如下:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">ovs-vsctl add-br br0  <span class="comment"># 创建网桥</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span>-fail-mode br0 secure|standalone <span class="comment"># 网桥默认模式为standlone，这里将其设置成secure模式</span></span><br><span class="line"><span class="comment"># standlone: 若OVS交换机超过3次无法正常连接到OpenFlow控制器，OVS交换机会自己负责建立流表，与常见的L2交换机类似进行工作。一旦网络连接恢复，OVS会再次切换到使用控制器进行流表管理；</span></span><br><span class="line"><span class="comment"># secure: 在该模式下，若OVS无法正常连接到OPenFlow控制器，OVS会不停的尝试与控制器重新建立连接，而不会自己负责建立流表。</span></span><br><span class="line">ovs-vsctl add-port br0 eth0<span class="number">.0</span> -- <span class="built_in">set</span> Interface eth0<span class="number">.0</span> ofport_request=<span class="number">4</span>  <span class="comment"># 添加端口，并固定端口编号为4，否则每次随机生成。</span></span><br><span class="line">ovs-vsctl add-port br0 eth0<span class="number">.1</span> -- <span class="built_in">set</span> Interface eth0<span class="number">.1</span> ofport_request=<span class="number">3</span>  <span class="comment"># 由于eth0.3已配置成OpenWRT内网接入地址，因此无法添加eth0.3</span></span><br><span class="line">ovs-vsctl add-port br0 eth0<span class="number">.2</span> -- <span class="built_in">set</span> Interface eth0<span class="number">.2</span> ofport_request=<span class="number">2</span></span><br><span class="line">ovs-vsctl add-port br0 wlan0 -- <span class="built_in">set</span> Interface wlan0 ofport_request=<span class="number">5</span>   <span class="comment">#添加2.4G频段无线接口</span></span><br><span class="line">ovs-vsctl add-port br0 wlan1 -- <span class="built_in">set</span> Interface wlan1 ofport_request=<span class="number">6</span>  <span class="comment">#添加5.0G频段无线接口</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span>-controller br0 tcp:<span class="number">10.12</span><span class="number">.34</span><span class="number">.180</span>:<span class="number">6653</span> tcp:<span class="number">10.12</span><span class="number">.34</span><span class="number">.180</span>:<span class="number">6654</span> <span class="comment">#  添加多控制器，该IP地址为运行控制器的主机的IP地址</span></span><br></pre></td></tr></table></figure>
+<p>在对网桥进行以上配置后，为运行控制器的主机添加对应网络配置（IP为10.0.30.1/24，网关为10.0.30.254），并运行控制器代码。Netgear R6220路由器即可连接上该控制器。</p>
+<p>此外，其他关于网桥的相关操作如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">ovs-vsctl show  <span class="comment"># 查看网桥状态</span></span><br><span class="line"></span><br><span class="line">ovs-vsctl <span class="keyword">del</span>-br br0  <span class="comment"># 删除网桥</span></span><br><span class="line"><span class="comment"># datapath类型分为netdev和system两种类型</span></span><br><span class="line"><span class="comment"># netdev类型：dpdk用户态数据通过；system类型：对应linux内核数据通路</span></span><br><span class="line"><span class="comment"># </span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span> bridge br0 datapath_type=netdev  <span class="comment">#　设置datapath类型</span></span><br><span class="line">ovs-vsctl get bridge br0 datapath_type  <span class="comment"># 查看datapath type</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span> bridge br0 other_config:datapath-<span class="built_in">id</span>=新dpid  <span class="comment"># 修改交换机dpid</span></span><br><span class="line">ovs-vsctl get bridge br0 datapath-<span class="built_in">id</span>　　<span class="comment"># 查看datapath　id</span></span><br><span class="line"></span><br><span class="line">ovs-vsctl <span class="keyword">del</span>-controller br0 <span class="comment"># 删除控制器</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span>-controller br0 tcp:<span class="number">1.2</span><span class="number">.3</span><span class="number">.4</span>:<span class="number">6633</span> <span class="comment"># 设置single controller</span></span><br><span class="line"><span class="comment"># 查询 Controller 设定，如果有成功连到 controller 则会显示 is_connected:true, 反之未连上</span></span><br><span class="line">ovs-vsctl <span class="built_in">list</span> controller  <span class="comment"># 查看控制器列表</span></span><br><span class="line">ovs-vsctl <span class="keyword">del</span>-fail-mode br0  <span class="comment"># 移除fail-mode</span></span><br><span class="line">ovs-vsctl get-fail-mode br0  <span class="comment"># 查询fail-mode</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># in-band模式下，控制器与OVS交换机连接的网口既可以有控制流量，又可以有数据流量。</span></span><br><span class="line"><span class="comment"># out-of-band模式下，控制器与OVS交换机连接的网口只有控制流量。</span></span><br><span class="line"><span class="comment"># OpenvSwitch不仅仅是一个OpenFlow Switch，它的流表组成除了of流表外，还有其他一些（隐藏）流表。这些隐藏流表默认交换机和控制器在同一网络中（in-band），因此要保证两者互通,要关闭默认的inband。</span></span><br><span class="line">ovs-vsctl get controller br0 connection-mode  <span class="comment"># 查询连接模式</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span> controller br0 connection-mode=out-of-band　　<span class="comment"># 设置br0连接模式为out-of-band</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span> controller br0 connection-mode=<span class="keyword">in</span>-band　　<span class="comment"># 设置br0连接模式为in-band</span></span><br><span class="line"></span><br><span class="line">ovs-vsctl <span class="built_in">list</span>-br  <span class="comment"># 查看有哪些桥</span></span><br><span class="line">ovs-vsctl <span class="built_in">list</span> bridge br0  <span class="comment"># 查看网桥的配置信息</span></span><br><span class="line">ovs-vsctl <span class="built_in">list</span>-ports br0  <span class="comment"># 查看桥中有哪些ports</span></span><br><span class="line">ovs-vsctl <span class="built_in">list</span> port br0 eth0<span class="number">.0</span>  <span class="comment"># 查看网桥段端口配置信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># stp协议：防止网桥网络中的冗余链路形成环路工作</span></span><br><span class="line">ovs-vsctl get bridge br0 stp_enable  <span class="comment"># 查看ovs交换机是否开启stp协议</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span> bridge br0 stp_enable=true  <span class="comment"># 设置交换机开启stp协议</span></span><br><span class="line"></span><br><span class="line">ovs-vsctl get Interface eth0<span class="number">.0</span> ofport  <span class="comment"># 获取网络接口的OpenFlow编号</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span> Interface eth0 <span class="built_in">type</span>=internal  <span class="comment"># 设置 port 为 internal</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置可选项</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span> Interface eth0<span class="number">.0</span> options:link_speed=1G</span><br><span class="line">ovs-vsctl remove Interface eth0<span class="number">.0</span> options link_speed</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置fail模式，支持standalone或者secure</span></span><br><span class="line">ovs-vsctl <span class="keyword">del</span>-fail-mode br0</span><br><span class="line">ovs-vsctl <span class="built_in">set</span>-fail-mode br0 secure</span><br><span class="line">ovs-vsctl get-fail-mode br0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 关于OpenFlow version</span></span><br><span class="line">ovs-vsctl <span class="built_in">set</span> bridge br0 protocols=OpenFlow12,OpenFlow13</span><br><span class="line">ovs-vsctl clear bridge br0 protocols</span><br><span class="line"></span><br><span class="line">ovs-ofctl dump-flows br0  <span class="comment"># 查看网桥流表信息</span></span><br><span class="line">ovs-ofctl <span class="keyword">del</span>-flows br0  <span class="comment"># 删除网桥流表</span></span><br><span class="line">ovs-ofctl show br0   <span class="comment"># 查看网桥各端口流表状态信息</span></span><br><span class="line">vs-vsctl get Interface br0 ofport  <span class="comment"># 获得br0网络接口的OpenFlow编号  </span></span><br></pre></td></tr></table></figure>
+<p>OpenVSwitch中常见的port类型介绍：</p>
+<ol>
+<li><p><strong>netdev:</strong> 通用网卡设备包括物理网卡以及虚拟网卡<br>接收：网卡收到报文后回直接通过OpenvSwitch接收函数处理，不会再走传统内核协议栈；<br>发送：OpenvSwitch中的一条flow指定从网卡port发出时通过该网卡设备发送。</p>
+</li>
+<li><p><strong>internal:</strong> OpenvSwitch创建的一种虚拟网卡设备<br>接收：OpenvSwitch所在主机通过internal设备网卡发送的报文(协议栈路由查找通过internal设备发送)，就进入OpenvSwitch接收处理函数.。报文送入OpenvSwitch处理；<br>发送：OpenvSwitch中的一条flow指定从internal port发出时，该报文被重新注入内核协议栈， 标记为从internal网卡接收。</p>
+</li>
+<li><p><strong>gre device:</strong> L2 gre tunnel设备<br>接收：协议栈收到gre报文后，传递给L4层解析gre header, 然后传递给OpenvSwitch接收处理函数；<br>发送：OpenvSwitch中的一条flow指定从gre设备发送, 报文会根据flow规则加上gre header和ip header，查找路由发送</p>
+</li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://www.li2ui2.xyz/2020/11/20/SDN-%E4%BA%94-Netgear-R6220%E4%BB%8E%E5%88%B7%E6%9C%BA%E5%88%B0%E9%85%8D%E7%BD%AE-OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" title="SDN(五) Netgear R6220从刷机到配置 OpenvSwitch交换机" target="_blank" rel="external">http://www.li2ui2.xyz/2020/11/20/SDN-%E4%BA%94-Netgear-R6220%E4%BB%8E%E5%88%B7%E6%9C%BA%E5%88%B0%E9%85%8D%E7%BD%AE-OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/li2ui2" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/liwei.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/li2ui2" target="_blank"><span class="text-dark">你的老李同学</span><small class="ml-1x">R&amp;D Engineer</small></a></h3>
+        <div>每天都要学习到晕厥</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2020/11/20/SDN-%E5%9B%9B-RYU%E6%8E%A7%E5%88%B6%E5%99%A8%E4%B8%8Bping%E5%91%BD%E4%BB%A4%E7%9A%84%E5%85%B7%E4%BD%93%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B/" title="SDN(四) RYU控制器下ping命令的具体执行过程"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2020/11/20/SDN-%E4%B8%89-RYU%E6%8E%A7%E5%88%B6%E5%99%A8%E7%9B%B8%E5%85%B3%E7%AC%94%E8%AE%B0/" title="SDN(三) RYU控制器相关笔记"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/li2ui2" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2022 Li Wei
+        
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: true,
+    appId: 'C4mjAEf6eUerQGDf0h0RsjNe-gzGzoHsz',
+    appKey: 'CUeJRp85k5GiRkjjuOuXggjQ',
+    placeholder: '说点什么...',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: true
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no,email=no,adress=no">
+  <!-- Color theme for statusbar -->
+  <meta name="theme-color" content="#000000" />
+  <!-- 强制页面在当前窗口以独立页面显示,防止别人在框架里调用页面 -->
+  <meta http-equiv="window-target" content="_top" />
+  
+  
+  <title>AI(一) 运用MTCNN和Facenet模型实现人脸识别和检测 | Liwei&#39;s Page</title>
+  <meta name="description" content="引言积跬步以至千里，积怠情以至深渊。 这应该算是本人第一篇用心写的博客了。网上也已经有很多关于人脸识别的博客，但是受某票圈各位大佬的影响，还是决定把刚完成的CV课程的大作业在这里写篇博客做个详细的记录，也算是总结下收获和体验了。这其中也参考了很多大佬的博客，感谢路过的各位大佬批评指正。 这篇博客的内容关于本人在实现人脸识别系统过程中的一些总结以及感悟，这其中包括部分源自Google的Facenet">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI(一) 运用MTCNN和Facenet模型实现人脸识别和检测">
+<meta property="og:url" content="http://www.li2ui2.xyz/2021/01/04/AI-%E4%B8%80-%E8%BF%90%E7%94%A8MTCNN%E5%92%8CFacenet%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%92%8C%E6%A3%80%E6%B5%8B/index.html">
+<meta property="og:site_name" content="Liwei&#39;s Tech Blog">
+<meta property="og:description" content="引言积跬步以至千里，积怠情以至深渊。 这应该算是本人第一篇用心写的博客了。网上也已经有很多关于人脸识别的博客，但是受某票圈各位大佬的影响，还是决定把刚完成的CV课程的大作业在这里写篇博客做个详细的记录，也算是总结下收获和体验了。这其中也参考了很多大佬的博客，感谢路过的各位大佬批评指正。 这篇博客的内容关于本人在实现人脸识别系统过程中的一些总结以及感悟，这其中包括部分源自Google的Facenet">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190111230515967.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190111230711923.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190112163646119.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/2019011614502424.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190113202631809.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190113204606492.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190115170329651.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20190115172447799.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+<meta property="article:published_time" content="2021-01-04T07:38:13.000Z">
+<meta property="article:modified_time" content="2021-01-04T07:40:24.413Z">
+<meta property="article:author" content="Li Wei">
+<meta property="article:tag" content="MTCNN人脸检测算法">
+<meta property="article:tag" content="Facenet人脸识别算法">
+<meta property="article:tag" content="OpenCV">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20190111230515967.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">
+  <!-- Canonical links -->
+  <link rel="canonical" href="http://www.li2ui2.xyz/2021/01/04/AI-%E4%B8%80-%E8%BF%90%E7%94%A8MTCNN%E5%92%8CFacenet%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%92%8C%E6%A3%80%E6%B5%8B/index.html">
+  
+    <link rel="alternate" href="/atom.xml" title="Liwei&#39;s Tech Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png" type="image/x-icon">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+  
+  
+  
+<meta name="generator" content="Hexo 5.2.0"></head>
+
+
+<body class="main-center" itemscope itemtype="http://schema.org/WebPage">
+  <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+  <div class="slimContent">
+    <div class="navbar-header">
+      
+      
+      <div class="profile-block text-center">
+        <a id="avatar" href="https://github.com/li2ui2" target="_blank">
+          <img class="img-circle img-rotate" src="/images/liwei.jpg" width="200" height="200">
+        </a>
+        <h2 id="name" class="hidden-xs hidden-sm">你的老李同学</h2>
+        <h3 id="title" class="hidden-xs hidden-sm hidden-md">R&amp;D Engineer</h3>
+        <small id="location" class="text-muted hidden-xs hidden-sm"><i class="icon icon-map-marker"></i> Hangzhou, China</small>
+      </div>
+      
+      <div class="search" id="search-form-wrap">
+
+    <form class="search-form sidebar-form">
+        <div class="input-group">
+            <input type="text" class="search-form-input form-control" placeholder="搜索" />
+            <span class="input-group-btn">
+                <button type="submit" class="search-form-submit btn btn-flat" onclick="return false;"><i class="icon icon-search"></i></button>
+            </span>
+        </div>
+    </form>
+    <div class="ins-search">
+  <div class="ins-search-mask"></div>
+  <div class="ins-search-container">
+    <div class="ins-input-wrapper">
+      <input type="text" class="ins-search-input" placeholder="想要查找什么..." x-webkit-speech />
+      <button type="button" class="close ins-close ins-selectable" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+    </div>
+    <div class="ins-section-wrapper">
+      <div class="ins-section-container"></div>
+    </div>
+  </div>
+</div>
+
+
+</div>
+      <button class="navbar-toggle collapsed" type="button" data-toggle="collapse" data-target="#main-navbar" aria-controls="main-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <nav id="main-navbar" class="collapse navbar-collapse" itemscope itemtype="http://schema.org/SiteNavigationElement" role="navigation">
+      <ul class="nav navbar-nav main-nav ">
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/.">
+            
+            <i class="icon icon-home-fill"></i>
+            
+            <span class="menu-title">首页</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives">
+            
+            <i class="icon icon-archives-fill"></i>
+            
+            <span class="menu-title">归档</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories">
+            
+            <i class="icon icon-folder"></i>
+            
+            <span class="menu-title">分类</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags">
+            
+            <i class="icon icon-tags"></i>
+            
+            <span class="menu-title">标签</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-repository">
+          <a href="/repository">
+            
+            <i class="icon icon-project"></i>
+            
+            <span class="menu-title">项目</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-books">
+          <a href="/books">
+            
+            <i class="icon icon-book-fill"></i>
+            
+            <span class="menu-title">书单</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-links">
+          <a href="/links">
+            
+            <i class="icon icon-friendship"></i>
+            
+            <span class="menu-title">友链</span>
+          </a>
+        </li>
+        
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about">
+            
+            <i class="icon icon-cup-fill"></i>
+            
+            <span class="menu-title">关于</span>
+          </a>
+        </li>
+        
+      </ul>
+      
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/li2ui2" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    </nav>
+  </div>
+</header>
+
+  
+    <aside class="sidebar" itemscope itemtype="http://schema.org/WPSideBar">
+  <div class="slimContent">
+    
+      <div class="widget">
+    <h3 class="widget-title">公告</h3>
+    <div class="widget-body">
+        <div id="board">
+            <div class="content">
+                <p>欢迎交流与分享经验</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">分类</h3>
+    <div class="widget-body">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">人工智能</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6/">版本控制</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a><span class="category-list-count">4</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/">软件定义网络</a><span class="category-list-count">7</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="widget-body">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Facenet%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E7%AE%97%E6%B3%95/" rel="tag">Facenet人脸识别算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Gephi%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B9%B3%E5%8F%B0/" rel="tag">Gephi可视化平台</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Git/" rel="tag">Git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MTCNN%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95/" rel="tag">MTCNN人脸检测算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mininet/" rel="tag">Mininet</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Mininet-WiFi/" rel="tag">Mininet-WiFi</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MongoDB/" rel="tag">MongoDB</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">Netgear R6220交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8/" rel="tag">Netgear路由器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenCV/" rel="tag">OpenCV</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">OpenFlow交换机</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenWRT/" rel="tag">OpenWRT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">OpenvSwitch交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/POX%E6%8E%A7%E5%88%B6%E5%99%A8/" rel="tag">POX控制器</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pycharm/" rel="tag">Pycharm</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Python/" rel="tag">Python</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/RYU%E6%8E%A7%E5%88%B6%E5%99%A8/" rel="tag">RYU控制器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TP-LINK-TL-MR3420%E4%BA%A4%E6%8D%A2%E6%9C%BA/" rel="tag">TP-LINK TL-MR3420交换机</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/arp%E5%8D%8F%E8%AE%AE/" rel="tag">arp协议</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/icmp%E5%8D%8F%E8%AE%AE/" rel="tag">icmp协议</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ping%E5%91%BD%E4%BB%A4%E5%8E%9F%E7%90%86/" rel="tag">ping命令原理</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" rel="tag">树莓派</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BD%91%E7%BB%9C%E4%BB%BF%E7%9C%9F%E5%99%A8/" rel="tag">网络仿真器</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag">计算机网络</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" rel="tag">软件定义网络</a><span class="tag-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="widget-body tagcloud">
+      <a href="/tags/Facenet%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E7%AE%97%E6%B3%95/" style="font-size: 13px;">Facenet人脸识别算法</a> <a href="/tags/Gephi%E5%8F%AF%E8%A7%86%E5%8C%96%E5%B9%B3%E5%8F%B0/" style="font-size: 13px;">Gephi可视化平台</a> <a href="/tags/Git/" style="font-size: 13px;">Git</a> <a href="/tags/MTCNN%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95/" style="font-size: 13px;">MTCNN人脸检测算法</a> <a href="/tags/Mininet/" style="font-size: 13px;">Mininet</a> <a href="/tags/Mininet-WiFi/" style="font-size: 13px;">Mininet-WiFi</a> <a href="/tags/MongoDB/" style="font-size: 13px;">MongoDB</a> <a href="/tags/Netgear-R6220%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">Netgear R6220交换机</a> <a href="/tags/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8/" style="font-size: 13px;">Netgear路由器</a> <a href="/tags/OpenCV/" style="font-size: 13px;">OpenCV</a> <a href="/tags/OpenFlow%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13.33px;">OpenFlow交换机</a> <a href="/tags/OpenWRT/" style="font-size: 13px;">OpenWRT</a> <a href="/tags/OpenvSwitch%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">OpenvSwitch交换机</a> <a href="/tags/POX%E6%8E%A7%E5%88%B6%E5%99%A8/" style="font-size: 13.33px;">POX控制器</a> <a href="/tags/Pycharm/" style="font-size: 13px;">Pycharm</a> <a href="/tags/Python/" style="font-size: 13.67px;">Python</a> <a href="/tags/RYU%E6%8E%A7%E5%88%B6%E5%99%A8/" style="font-size: 13px;">RYU控制器</a> <a href="/tags/TP-LINK-TL-MR3420%E4%BA%A4%E6%8D%A2%E6%9C%BA/" style="font-size: 13px;">TP-LINK TL-MR3420交换机</a> <a href="/tags/arp%E5%8D%8F%E8%AE%AE/" style="font-size: 13px;">arp协议</a> <a href="/tags/icmp%E5%8D%8F%E8%AE%AE/" style="font-size: 13px;">icmp协议</a> <a href="/tags/ping%E5%91%BD%E4%BB%A4%E5%8E%9F%E7%90%86/" style="font-size: 13px;">ping命令原理</a> <a href="/tags/%E6%A0%91%E8%8E%93%E6%B4%BE/" style="font-size: 13.33px;">树莓派</a> <a href="/tags/%E7%BD%91%E7%BB%9C%E4%BB%BF%E7%9C%9F%E5%99%A8/" style="font-size: 13px;">网络仿真器</a> <a href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" style="font-size: 13px;">计算机网络</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%AE%9A%E4%B9%89%E7%BD%91%E7%BB%9C/" style="font-size: 14px;">软件定义网络</a>
+    </div>
+  </div>
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">归档</h3>
+    <div class="widget-body">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/01/">一月 2021</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/11/">十一月 2020</a><span class="archive-list-count">6</span></li></ul>
+    </div>
+  </div>
+
+
+    
+      
+  <div class="widget">
+    <h3 class="widget-title">最新文章</h3>
+    <div class="widget-body">
+      <ul class="recent-post-list list-unstyled no-thumbnail">
+        
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Netgear%E8%B7%AF%E7%94%B1%E5%99%A8%E6%95%91%E7%A0%96%E6%95%99%E7%A8%8B/" class="title">Netgear路由器救砖教程</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:52:06.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/%E6%A0%91%E8%8E%93%E6%B4%BE-%E4%BA%8C-%E6%A0%91%E8%8E%93%E6%B4%BE%E5%BC%80%E5%90%AFVNC%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5%E6%9C%8D%E5%8A%A1/" class="title">树莓派(二) 树莓派开启VNC远程连接服务</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:48:17.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%A0%91%E8%8E%93%E6%B4%BE/">树莓派</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/%E6%A0%91%E8%8E%93%E6%B4%BE-%E4%B8%80-%E6%A0%91%E8%8E%93%E6%B4%BE%E4%B8%AD%E7%9A%84%E7%BD%91%E7%BB%9C%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98/" class="title">树莓派(一) 树莓派中的网络配置问题</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:47:49.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E6%8A%80%E5%B7%A7/">技巧</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Pytharm%E4%B8%AD%E5%85%B3%E4%BA%8E%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E7%9A%84%E4%BD%BF%E7%94%A8/" class="title">Pytharm中关于版本控制的使用</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:45:35.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+          <li>
+            
+            <div class="item-inner">
+              <p class="item-category">
+                <a class="category-link" href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a>
+              </p>
+              <p class="item-title">
+                <a href="/2021/01/04/Python-%E5%9B%9B-Python%E4%B8%AD%E7%9A%84%E9%97%AD%E5%8C%85%E5%87%BD%E6%95%B0%E3%80%81%E5%8F%AF%E5%8F%98%E5%8F%82%E6%95%B0%E5%92%8C%E8%A3%85%E9%A5%B0%E5%99%A8/" class="title">Python(四) Python中的闭包函数、可变参数和装饰器</a>
+              </p>
+              <p class="item-date">
+                <time datetime="2021-01-04T07:43:54.000Z" itemprop="datePublished">2021-01-04</time>
+              </p>
+            </div>
+          </li>
+          
+      </ul>
+    </div>
+  </div>
+  
+
+    
+  </div>
+</aside>
+
+  
+  
+<main class="main" role="main">
+  <div class="content">
+  <article id="post-AI-一-运用MTCNN和Facenet模型实现人脸识别和检测" class="article article-type-post" itemscope itemtype="http://schema.org/BlogPosting">
+    
+    <div class="article-header">
+      
+        
+  
+    <h1 class="article-title" itemprop="name">
+      AI(一) 运用MTCNN和Facenet模型实现人脸识别和检测
+    </h1>
+  
+
+      
+      <div class="article-meta">
+        <span class="article-date">
+    <i class="icon icon-calendar-check"></i>
+	<a href="/2021/01/04/AI-%E4%B8%80-%E8%BF%90%E7%94%A8MTCNN%E5%92%8CFacenet%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%92%8C%E6%A3%80%E6%B5%8B/" class="article-date">
+	  <time datetime="2021-01-04T07:38:13.000Z" itemprop="datePublished">2021-01-04</time>
+	</a>
+</span>
+        
+  <span class="article-category">
+    <i class="icon icon-folder"></i>
+    <a class="article-category-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD/">人工智能</a>
+  </span>
+
+        
+  <span class="article-tag">
+    <i class="icon icon-tags"></i>
+	<a class="article-tag-link-link" href="/tags/Facenet%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E7%AE%97%E6%B3%95/" rel="tag">Facenet人脸识别算法</a>, <a class="article-tag-link-link" href="/tags/MTCNN%E4%BA%BA%E8%84%B8%E6%A3%80%E6%B5%8B%E7%AE%97%E6%B3%95/" rel="tag">MTCNN人脸检测算法</a>, <a class="article-tag-link-link" href="/tags/OpenCV/" rel="tag">OpenCV</a>
+  </span>
+
+
+        
+
+	<span class="article-read hidden-xs">
+    	<i class="icon icon-eye-fill" aria-hidden="true"></i>
+    	<span id="/2021/01/04/AI-%E4%B8%80-%E8%BF%90%E7%94%A8MTCNN%E5%92%8CFacenet%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%92%8C%E6%A3%80%E6%B5%8B/" class="leancloud_visitors"  data-flag-title="AI(一) 运用MTCNN和Facenet模型实现人脸识别和检测">
+			<span class="leancloud-visitors-count">0</span>
+		</span>
+    </span>
+
+        <span class="post-comment"><i class="icon icon-comment"></i> <a href="/2021/01/04/AI-%E4%B8%80-%E8%BF%90%E7%94%A8MTCNN%E5%92%8CFacenet%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%92%8C%E6%A3%80%E6%B5%8B/#comments" class="article-comment-link">评论</a></span>
+        
+      </div>
+    </div>
+    <div class="article-entry marked-body" itemprop="articleBody">
+      
+        <h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>积跬步以至千里，积怠情以至深渊。</p>
+<p>这应该算是本人第一篇用心写的博客了。网上也已经有很多关于人脸识别的博客，但是受某票圈各位大佬的影响，还是决定把刚完成的CV课程的大作业在这里写篇博客做个详细的记录，也算是总结下收获和体验了。这其中也参考了很多大佬的博客，感谢路过的各位大佬批评指正。</p>
+<p>这篇博客的内容关于本人在实现人脸识别系统过程中的一些总结以及感悟，这其中包括部分源自Google的Facenet的源码解读、个人在实现人脸识别时经过学习总结的一些思路以及部分代码片段分享等内容。</p>
+<h1 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h1><h2 id="参考论文"><a href="#参考论文" class="headerlink" title="参考论文"></a>参考论文</h2><p>主要参考了文献：<br>1.FaceNet<br>Schroff F, Kalenichenko D, Philbin J. Facenet: A unified embedding for face recognition and clustering[C]//Proceedings of the IEEE conference on computer vision and pattern recognition. 2015: 815-823.</p>
+<p>2.MTCNN<br>Zhang K, Zhang Z, Li Z, et al. Joint face detection and alignment using multitask cascaded convolutional networks[J]. IEEE Signal Processing Letters, 2016, 23(10): 1499-1503.</p>
+<p>3.《如何应用 MTCNN 和 FaceNet 模型实现人脸检测及识别》<br><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/how-to-achieve-face-recognition-using-mtcnn-and-facenet">https://www.infoq.cn/article/how-to-achieve-face-recognition-using-mtcnn-and-facenet</a></p>
+<p><strong>NT：关于论文的解读这里就不再赘述，网上已经有大量的分析。</strong></p>
+<h2 id="Facenet推理过程"><a href="#Facenet推理过程" class="headerlink" title="Facenet推理过程"></a>Facenet推理过程</h2><h3 id="Facenet"><a href="#Facenet" class="headerlink" title="Facenet"></a>Facenet</h3><p>这是谷歌的一个<a target="_blank" rel="noopener" href="https://github.com/davidsandberg/facenet">开源项目</a>，实现了将输入的人像最终转换为shape为1*128的向量，而后通过计算不同照片之间的欧几里德距离来判他们的相似度。<a target="_blank" rel="noopener" href="https://github.com/iwantooxxoox/real-time-face-recognition/tree/master/pre-trained/20170512-110547">预训练模型请戳这里下载</a></p>
+<h3 id="MTCNN"><a href="#MTCNN" class="headerlink" title="MTCNN"></a>MTCNN</h3><p>该模型是一个Multi-task的人脸检测框架，使用了3个CNN级联算法结构，将人脸检测和人脸特征点检测同时进行。需要经历Resize、P-Net、R-Net、O-Net四个阶段。<strong>简单的说</strong>，这就是一个检测图片中人脸位置的一个模型。</p>
+<h3 id="实现流程"><a href="#实现流程" class="headerlink" title="实现流程"></a>实现流程</h3><p>1.通过MTCNN人脸检测模型，从照片中提取人脸图像</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#返回提取后的图像</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_crop_image</span>(<span class="params">image_paths, image_size, margin, gpu_memory_fraction</span>)</span></span><br><span class="line">    minsize = 20 # minimum size of face</span><br><span class="line">    threshold = [ <span class="number">0.6</span>, <span class="number">0.7</span>, <span class="number">0.7</span> ]  <span class="comment"># three steps&#x27;s threshold</span></span><br><span class="line">    factor = <span class="number">0.709</span> <span class="comment"># scale factor</span></span><br><span class="line">    </span><br><span class="line">    print(<span class="string">&#x27;创建网络，并载入相关参数：&#x27;</span>)</span><br><span class="line">    <span class="keyword">with</span> tf.Graph().as_default():</span><br><span class="line">        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=gpu_memory_fraction)</span><br><span class="line">        sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=<span class="literal">False</span>))</span><br><span class="line">        <span class="keyword">with</span> sess.as_default():</span><br><span class="line">            pnet, rnet, onet = align.detect_face.create_mtcnn(sess, <span class="literal">None</span>)</span><br><span class="line"> </span><br><span class="line">    img_list = []</span><br><span class="line">    <span class="keyword">for</span> image <span class="keyword">in</span> image_paths:</span><br><span class="line">        print(image</span><br><span class="line">        img = misc.imread(image, mode=<span class="string">&#x27;RGB&#x27;</span>)</span><br><span class="line">        img_size = np.asarray(img.shape)[<span class="number">0</span>:<span class="number">2</span>]</span><br><span class="line">        bounding_boxes, _ = align.detect_face.detect_face(img, minsize, pnet, rnet, onet, threshold, factor)</span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(bounding_boxes) &lt; <span class="number">1</span>:</span><br><span class="line">          image_paths.remove(image)</span><br><span class="line">          print(<span class="string">&quot;无法检测到人脸，并移除图像 &quot;</span>, image)</span><br><span class="line">          <span class="keyword">continue</span></span><br><span class="line">        det = np.squeeze(bounding_boxes[<span class="number">0</span>,<span class="number">0</span>:<span class="number">4</span>])</span><br><span class="line">        bb = np.zeros(<span class="number">4</span>, dtype=np.int32)</span><br><span class="line">        bb[<span class="number">0</span>] = np.maximum(det[<span class="number">0</span>]-margin/<span class="number">2</span>, <span class="number">0</span>)</span><br><span class="line">        bb[<span class="number">1</span>] = np.maximum(det[<span class="number">1</span>]-margin/<span class="number">2</span>, <span class="number">0</span>)</span><br><span class="line">        bb[<span class="number">2</span>] = np.minimum(det[<span class="number">2</span>]+margin/<span class="number">2</span>, img_size[<span class="number">1</span>])</span><br><span class="line">        bb[<span class="number">3</span>] = np.minimum(det[<span class="number">3</span>]+margin/<span class="number">2</span>, img_size[<span class="number">0</span>])</span><br><span class="line">        cropped = img[bb[<span class="number">1</span>]:bb[<span class="number">3</span>],bb[<span class="number">0</span>]:bb[<span class="number">2</span>],:]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># 根据cropped位置对原图resize，并对新得的aligned进行白化预处理</span></span><br><span class="line">        aligned = misc.imresize(cropped, (image_size, image_size), interp=<span class="string">&#x27;bilinear&#x27;</span>)</span><br><span class="line">        prewhitened = facenet.prewhiten(aligned)</span><br><span class="line">        img_list.append(prewhitened)</span><br><span class="line">    images = np.stack(img_list)</span><br><span class="line">    <span class="keyword">return</span> images</span><br></pre></td></tr></table></figure>
+<p>2.把人脸图像输入到Facenet中，计算Embedding的特征向量</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Get input and output tensor</span></span><br><span class="line">images_placeholder = tf.get_default_graph().get_tensor_by_name(<span class="string">&quot;input:0&quot;</span>)</span><br><span class="line">embeddings = tf.get_default_graph().get_tensor_by_name(<span class="string">&quot;embeddings:0&quot;</span>)</span><br><span class="line">phase_train_placeholder =tf.get_default_graph().get_tensor_by_name(<span class="string">&quot;phase_train:0&quot;</span>)</span><br><span class="line">image=[]</span><br><span class="line">nrof_images=<span class="number">0</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#该路径为mtcnn模型训练后得到的图像的存储路径</span></span><br><span class="line">emb_dir=<span class="string">&#x27;E:\\WorkSpace\\PycharmProject\\face_recognition_system\\embed_img&#x27;</span></span><br><span class="line">all_img=[]</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> os.listdir(emb_dir):</span><br><span class="line">	all_img.append(i)</span><br><span class="line">    img = misc.imread(os.path.join(emb_dir,i), mode=<span class="string">&#x27;RGB&#x27;</span>)</span><br><span class="line">    prewhitened = facenet.prewhiten(img)</span><br><span class="line">    image.append(prewhitened)</span><br><span class="line">    nrof_images=nrof_images+<span class="number">1</span></span><br><span class="line">images=np.stack(image)</span><br><span class="line">feed_dict = &#123; images_placeholder: images, phase_train_placeholder:<span class="literal">False</span> &#125;</span><br><span class="line">compare_emb = sess.run(embeddings, feed_dict=feed_dict)</span><br><span class="line">compare_num=<span class="built_in">len</span>(compare_emb)</span><br></pre></td></tr></table></figure>
+<p>3.比较特征向量间的欧式距离，判断是否为同一个人。<br>例如当距离小于1时，则认为时同一个人。在进行比较时，需要计算带比较人脸的特征向量。</p>
+<h2 id="结合OpenCV实现实时人脸识别系统"><a href="#结合OpenCV实现实时人脸识别系统" class="headerlink" title="结合OpenCV实现实时人脸识别系统"></a>结合OpenCV实现实时人脸识别系统</h2><h3 id="关于OpenCV的一点干货"><a href="#关于OpenCV的一点干货" class="headerlink" title="关于OpenCV的一点干货"></a>关于OpenCV的一点干货</h3><p>呃…还是直接看本人在github上分享的关于OpenCV简单功能实现的<a target="_blank" rel="noopener" href="https://gist.github.com/eelllew/a5f21e5584dfce69055590b761cd7c8d">代码片段</a>吧！！<br>下面介绍一款可以调用手机摄像头的APP，并结合OpenCV使用，IPhone手机亲测可用。苹果手机直接下载IP摄像头 简化版即可，可不用下载付费款的。下载完成后，打开软件，点击打开IP摄像头服务器，而后出现<a target="_blank" rel="noopener" href="https://img-blog.csdnimg.cn/20190111223319985.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70">以下界面</a>，记下红框中的IP地址。<br>然后就是结合OpenCV使用的部分代码了：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 开启ip摄像头</span></span><br><span class="line"><span class="comment"># 此处@后的ipv4 地址需要修改为上面记下的IP地址，并且客户端与手机需要连接在同一个局域网下</span></span><br><span class="line">video = <span class="string">&quot;http://admin:admin@192.XXX.XXX.XXX:8081/&quot;</span>  </span><br><span class="line"><span class="comment"># 参数为0表示打开内置摄像头，参数是视频文件路径则打开视频</span></span><br><span class="line">capture = cv2.VideoCapture(video)</span><br><span class="line">cv2.namedWindow(<span class="string">&quot;camera&quot;</span>, <span class="number">1</span>)</span><br><span class="line"><span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">	ret, frame = capture.read()</span><br><span class="line">    cv.imshow(title, frame)</span><br></pre></td></tr></table></figure>
+<p>相信，在搞懂本人在github上上传的代码片段以及以上代码，怎么实现实时人脸识别系统，就可以根据自己想要的设计开发属于自己的人脸识别系统啦。至于识别精度方面。。相信谷歌。。亲测。。说可以也还可以。。说不可以也还真不可以。。</p>
+<h3 id="人脸识别结果"><a href="#人脸识别结果" class="headerlink" title="人脸识别结果"></a>人脸识别结果</h3><p>人脸识别结果的展示：</p>
+<p>1.只要检测到人脸框就进行标注</p>
+<table>
+    <tr>
+        <td><center>
+        <img src="https://img-blog.csdnimg.cn/20190111230515967.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70" />
+        </center>
+        <center>
+        图1 合照中的人脸识别
+        </center></td> 
+    <tr>
+</table>
+
+<table>
+    <tr>
+        <td><center>
+        <img src="https://img-blog.csdnimg.cn/20190111230711923.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70" />
+        </center>
+        <center>
+        图2 个人照中的人脸识别
+        </center></td> 
+    <tr>
+</table>
+
+<p>2.展示检测到的图像中最大的人脸</p>
+<p>利用mtcnn计算图片中检测到的所有人脸框中最大的一个人脸框，并显示其身份。</p>
+<table>
+    <tr>
+        <td><center>
+        <img src="https://img-blog.csdnimg.cn/20190112163646119.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70" />
+        </center>
+        <center>
+        图3 大脸识别
+        </center></td> 
+    <tr>
+</table>
+
+
+<p>相关代码片段，其中det为调用align.detect_face.detect_face函数后得到的返回值，并进行相关处理后的结果：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#找最大矩形框</span></span><br><span class="line"><span class="keyword">for</span> rec_position <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(det)):</span><br><span class="line">    a = <span class="built_in">abs</span>(det[rec_position, <span class="number">0</span>]-det[rec_position, <span class="number">2</span>])</span><br><span class="line">    b = <span class="built_in">abs</span>(det[rec_position, <span class="number">1</span>]-det[rec_position, <span class="number">3</span>])</span><br><span class="line">    s = a*b</span><br><span class="line">    <span class="keyword">if</span> s &gt; max_area:</span><br><span class="line">        max_area = s</span><br><span class="line">        max_area_point = [det[rec_position, <span class="number">0</span>],det[rec_position, <span class="number">1</span>],</span><br><span class="line">							det[rec_position, <span class="number">2</span>],det[rec_position, <span class="number">3</span>]]</span><br><span class="line"><span class="comment">#绘制矩形框</span></span><br><span class="line">cv2.rectangle(frame, (max_area_point[<span class="number">0</span>], max_area_point[<span class="number">1</span>]),</span><br><span class="line">				(max_area_point[<span class="number">2</span>], max_area_point[<span class="number">3</span>]), (<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>), <span class="number">2</span>, <span class="number">8</span>, <span class="number">0</span>)</span><br><span class="line"><span class="comment">#在左上角输出对应信息</span></span><br><span class="line">cv2.putText(</span><br><span class="line">            frame,</span><br><span class="line">            result[rec_position],</span><br><span class="line">            (max_area_point[<span class="number">0</span>], max_area_point[<span class="number">1</span>]),</span><br><span class="line">            cv2.FONT_HERSHEY_COMPLEX_SMALL,</span><br><span class="line">            <span class="number">0.8</span>,</span><br><span class="line">            (<span class="number">0</span>, <span class="number">0</span>, <span class="number">255</span>),</span><br><span class="line">            thickness=<span class="number">2</span>,</span><br><span class="line">            lineType=<span class="number">2</span>)</span><br></pre></td></tr></table></figure>
+<p>3 在识别到最大人脸框后，将这个人在里对应的最像的照片缩小叠加显示在边上</p>
+<table>
+    <tr>
+        <td><center>
+        <img src="https://img-blog.csdnimg.cn/2019011614502424.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70" />
+        </center>
+        <center>
+        图4 大脸识别并找最相似人脸
+        </center></td> 
+    <tr>
+</table>
+
+<h1 id="验证人脸识别的准确率"><a href="#验证人脸识别的准确率" class="headerlink" title="验证人脸识别的准确率"></a>验证人脸识别的准确率</h1><p>在做人脸识别任务时，常常会用ROC曲线、CMC曲线作为实验性能指标。根据以下绘图结果以及实时测试，该人脸识别实时系统的识别精度为98.72%，由于个人PC配置问题，实时视频后期会出现卡顿现象。</p>
+<h2 id="ROC曲线"><a href="#ROC曲线" class="headerlink" title="ROC曲线"></a>ROC曲线</h2><h3 id="相关定义"><a href="#相关定义" class="headerlink" title="相关定义"></a>相关定义</h3><p>ROC（Receiver Operating Characteristic）曲线，以及AUC（Area Under Curve），常用来评价一个二值分类器的优劣，ROC的横轴为false positive rate，FPR，也就是实例是负类被预测为正类的比例；纵轴是true positive rate，TPR， 也就是实例是正类被预测为正类的比例。<br>AUC被定义为时ROC曲线下的面积，可用于评价模型性能，AUC值越接近于1，表示模型越好。</p>
+<h3 id="曲线绘制"><a href="#曲线绘制" class="headerlink" title="曲线绘制"></a>曲线绘制</h3><p>1.<a target="_blank" rel="noopener" href="http://vis-www.cs.umass.edu/lfw/">Labeled Faces in the Wild, LFW</a><br>在开源的facenet源码中，给出了针对LFW数据的ROC计算代码，代码相关解释可参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/LIYUAN123ZHOUHUI/article/details/72673654">博客</a>，而后通过调用lfw数据集的路径以及对应的pairs.txt文件即可绘制出ROC曲线，结果如下：</p>
+<table>
+    <tr>
+        <td><center>
+        <img src="https://img-blog.csdnimg.cn/20190113202631809.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70" />
+        </center>
+        <center>
+        图5 LFW数据集对应的ROC曲线
+        </center></td> 
+    <tr>
+</table>
+由于公开的facenet模型正是基于LFW数据集训练得到的模型，所以使用该数据集再进行性能检测时得到的AUC值为1，模型几乎完美。
+
+
+<p>呃。。。。</p>
+<p>2 绘制其他数据集，比如 <a target="_blank" rel="noopener" href="https://www.cl.cam.ac.uk/research/dtg/attarchive/facedatabase.html">AT&amp;T “The Database of Faces”</a><br>Facenet源码中对ROC的计算时针对LFW数据集的，要想使用其他数据集，就必须自己造pairs.txt文件。这里选用了att_face数据集，制作其pairs.txt格式文件步骤如下：</p>
+<p><strong>首先是Facenet源码中的pairs.txt格式文件解读：</strong></p>
+<table>
+    <tr>
+        <td><center>
+        <img src="https://img-blog.csdnimg.cn/20190113204606492.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70" />
+        </center>
+        <center>
+        图6 Facenet源码中的pairs.txt格式文件解读
+        </center></td> 
+    <tr>
+</table>
+
+<p><strong>数据集中的样本图片格式及名称的修改：</strong><br>att_face数据集数据集中的图片格式是.pgm格式，将其转化成.jpg格式，并将每张图片路径存为…/s1/s1_0001.jpg格式。实现代码如下</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">batch_image</span>(<span class="params">in_dir, out_dir</span>):</span></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(out_dir):</span><br><span class="line">        print(out_dir, <span class="string">&#x27;is not existed.&#x27;</span>)</span><br><span class="line">        os.mkdir(out_dir)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(in_dir):</span><br><span class="line">        print(in_dir, <span class="string">&#x27;is not existed.&#x27;</span>)</span><br><span class="line">        <span class="keyword">return</span> -<span class="number">1</span></span><br><span class="line">    count = <span class="number">0</span></span><br><span class="line">    <span class="keyword">for</span> <span class="built_in">dir</span> <span class="keyword">in</span> os.listdir(in_dir):</span><br><span class="line">        path = os.path.join(in_dir,<span class="built_in">dir</span>)</span><br><span class="line">        <span class="keyword">for</span> files <span class="keyword">in</span> glob.glob(path + <span class="string">&#x27;/*&#x27;</span>):</span><br><span class="line">            <span class="comment">#返回路径基名和路径目录名</span></span><br><span class="line">            filepath, filename = os.path.split(files)</span><br><span class="line"></span><br><span class="line">            out_file = <span class="built_in">dir</span> + <span class="string">&#x27;_000&#x27;</span>+ re.findall(<span class="string">r&#x27;\d+&#x27;</span>,filename[<span class="number">0</span>:<span class="number">9</span>])[<span class="number">0</span>] + <span class="string">&#x27;.jpg&#x27;</span></span><br><span class="line">            im = Image.<span class="built_in">open</span>(files)</span><br><span class="line">            new_path1 = out_dir + <span class="string">&#x27;\\&#x27;</span>+ <span class="built_in">dir</span></span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> os.path.exists(new_path1):</span><br><span class="line">                print(new_path1, <span class="string">&#x27;is not existed.&#x27;</span>)</span><br><span class="line">                os.mkdir(new_path1)</span><br><span class="line">            new_path = os.path.join(new_path1, out_file)</span><br><span class="line">            print(count, <span class="string">&#x27;,&#x27;</span>, new_path)</span><br><span class="line">            count = count + <span class="number">1</span></span><br><span class="line">            im.save(new_path)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    indir = <span class="string">r&#x27;E:\WorkSpace\PycharmProject\face_recognition_system\ROC_PLOT\Data_Transfer\att_faces&#x27;</span></span><br><span class="line">    outdir = <span class="string">r&#x27;E:\WorkSpace\PycharmProject\face_recognition_system\ROC_PLOT\Data_Transfer\dataset&#x27;</span></span><br><span class="line">    batch_image(indir, outdir)</span><br></pre></td></tr></table></figure>
+
+<p><strong>生成数据集对应的pairs.txt：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> random</span><br><span class="line">dataset_path = <span class="string">&quot;E:/WorkSpace/PycharmProject/face_recognition_system/ROC_PLOT/Data_Transfer/s_data/&quot;</span></span><br><span class="line">pairs_generate_path = <span class="string">&quot;E:/WorkSpace/PycharmProject/face_recognition_system/ROC_PLOT/Data_Transfer/pairs.txt&quot;</span></span><br><span class="line"><span class="comment"># Make all matches</span></span><br><span class="line"><span class="keyword">for</span> name <span class="keyword">in</span> os.listdir(dataset_path):</span><br><span class="line">    a = []</span><br><span class="line">    <span class="keyword">for</span> file <span class="keyword">in</span> os.listdir(dataset_path + name):</span><br><span class="line">        a.append(file)</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(pairs_generate_path, <span class="string">&quot;a&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">            temp = random.choice(a).split(<span class="string">&quot;_&quot;</span>) <span class="comment">#根据自己图片的命名格式更改这行代码</span></span><br><span class="line">            w = temp[<span class="number">0</span>] + <span class="string">&quot;_&quot;</span> + temp[<span class="number">1</span>]</span><br><span class="line">            f.write(temp[<span class="number">0</span>] + <span class="string">&quot;\t&quot;</span> + random.choice(a).split(<span class="string">&quot;_&quot;</span>)[<span class="number">1</span>].lstrip(<span class="string">&quot;0&quot;</span>).rstrip(<span class="string">&quot;.jpg&quot;</span>) + <span class="string">&quot;\t&quot;</span> + random.choice(a).split(<span class="string">&quot;_&quot;</span>)[<span class="number">1</span>].lstrip(<span class="string">&quot;0&quot;</span>).rstrip(<span class="string">&quot;.jpg&quot;</span>) + <span class="string">&quot;\n&quot;</span>)</span><br><span class="line"><span class="comment"># Make all mismatches</span></span><br><span class="line"><span class="keyword">for</span> i,name <span class="keyword">in</span> <span class="built_in">enumerate</span>(os.listdir(dataset_path)):</span><br><span class="line">    remaining = os.listdir(dataset_path)</span><br><span class="line">    <span class="keyword">del</span> remaining[i] <span class="comment"># 删除对应索引的元素，以免重复选取</span></span><br><span class="line">    other_dir = random.choice(remaining)</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(pairs_generate_path,<span class="string">&quot;a&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">5</span>):</span><br><span class="line">            file1 = random.choice(os.listdir(dataset_path + name))</span><br><span class="line">            file2 = random.choice(os.listdir(dataset_path + other_dir))</span><br><span class="line">            f.write(name + <span class="string">&quot;\t&quot;</span> + file1.split(<span class="string">&quot;_&quot;</span>)[<span class="number">1</span>].lstrip(<span class="string">&quot;0&quot;</span>).rstrip(<span class="string">&quot;.jpg&quot;</span>) + <span class="string">&quot;\t&quot;</span></span><br><span class="line">                    + other_dir + <span class="string">&quot;\t&quot;</span> + file2.split(<span class="string">&quot;_&quot;</span>)[<span class="number">1</span>].lstrip(<span class="string">&quot;0&quot;</span>).rstrip(<span class="string">&quot;.jpg&quot;</span>) + <span class="string">&quot;\n&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>3 针对自己构建的分类器模型，测试任意数据集的ROC曲线</p>
+<p>本次人脸识别过程中构建了SVM线性分类器对录入人脸类别进行了42个分类，以提供识别，后期亦可添加。多分类下的ROC曲线的绘制有别于二分类，详情参考了<a target="_blank" rel="noopener" href="https://blog.csdn.net/xyz1584172808/article/details/81839230">博客</a>。绘制结果如下，从结果可以看出，精度还是相当高的，但是若每个类别下的人脸图像数据过少，识别精度就很有可能急剧下降。</p>
+<table>
+    <tr>
+        <td><center>
+        <img src="https://img-blog.csdnimg.cn/20190115170329651.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70" />
+        </center>
+        <center>
+        图7 SVM分类器训练模型下的ROC曲线
+        </center></td> 
+    <tr>
+</table>
+
+
+
+<h2 id="CMC曲线"><a href="#CMC曲线" class="headerlink" title="CMC曲线"></a>CMC曲线</h2><h3 id="相关定义-1"><a href="#相关定义-1" class="headerlink" title="相关定义"></a>相关定义</h3><p>全称为Cumulative Match Characteristic Curve, 也就是累积匹配曲线。其评价指标与DL中常用的top error1评价指标一样的意思，区别在于横坐标Rank表示正确率而不是错误率(Rank1识别率 = 1 - top1 err), 更多不再解释，网上有很多这里举个例子：</p>
+<p>我们训练了一个分类器，来识别五个物体，即1，2，3，4，5，他们属于三类即A,B,C。经过分类预测，如果物体1，2为一次就命中，3，4为两次才能命中，5为三次命中，则rank1为40%、rank2为80%、rank3为100%。</p>
+<h2 id="曲线绘制-1"><a href="#曲线绘制-1" class="headerlink" title="曲线绘制"></a>曲线绘制</h2><p>Python下实现CMC曲线绘制的教程还是比较少的，这里给出实现代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">from</span> sklearn.externals <span class="keyword">import</span> joblib</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">import</span> train</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">from</span> sklearn.preprocessing <span class="keyword">import</span> label_binarize</span><br><span class="line"><span class="comment"># CMC曲线</span></span><br><span class="line"><span class="comment"># 需要提供confidence_values和y_test这两个变量</span></span><br><span class="line">X_test = train.X_test</span><br><span class="line">y_test_ = train.y_test</span><br><span class="line">model = joblib.load(<span class="string">&#x27;./models/svm_classifier.model&#x27;</span>)</span><br><span class="line"><span class="comment"># 得到每个样本在每个标签下的置信值，返回的confidence_values为模型预测得到的匹配置信分数矩阵</span></span><br><span class="line">confidence_values = model.decision_function(X_test)</span><br><span class="line"><span class="comment"># 将标签二值化,返回一个one-hot标签矩阵</span></span><br><span class="line">y_test= label_binarize(y_test_, classes=[i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">42</span>)])</span><br><span class="line"><span class="comment"># 保存accuracy，记录rank1到rank42的准确率</span></span><br><span class="line">test_cmc = []</span><br><span class="line"></span><br><span class="line"><span class="comment"># y_test为测试样本的真实标签矩阵；返回每行真实标签相对应的最大值的索引值</span></span><br><span class="line">actual_index = np.argmax(y_test,<span class="number">1</span>)</span><br><span class="line"><span class="comment">#返回每行预测标签相对应的最大值的索引值</span></span><br><span class="line">predict_index = np.argmax(confidence_values,<span class="number">1</span>)</span><br><span class="line"><span class="comment"># 若为1代表相同，一次命中；0代表不同，第一次猜测并未命中</span></span><br><span class="line">temp = np.cast[<span class="string">&#x27;float32&#x27;</span>](np.equal(actual_index,predict_index))</span><br><span class="line"><span class="comment"># rank1</span></span><br><span class="line">test_cmc.append(np.mean(temp))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按行降序排序，返回匹配分数值从大到小的索引值</span></span><br><span class="line">sort_index = np.argsort(-confidence_values,axis=<span class="number">1</span>)</span><br><span class="line"><span class="comment"># rank2到rank42</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(sort_index.shape[<span class="number">1</span>]-<span class="number">1</span>):</span><br><span class="line">    <span class="keyword">for</span> j <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(temp)):</span><br><span class="line">        <span class="keyword">if</span> temp[j]==<span class="number">0</span>:</span><br><span class="line">            predict_index[j] = sort_index[j][i+<span class="number">1</span>]</span><br><span class="line">    temp = np.cast[<span class="string">&#x27;float32&#x27;</span>](np.equal(actual_index,predict_index))</span><br><span class="line">    test_cmc.append(np.mean(temp))</span><br><span class="line"></span><br><span class="line"><span class="comment">#创建绘图对象</span></span><br><span class="line">plt.figure()</span><br><span class="line">x = np.arange(<span class="number">0</span>,sort_index.shape[<span class="number">1</span>])</span><br><span class="line">plt.plot(x,test_cmc,color=<span class="string">&quot;red&quot;</span>,linewidth=<span class="number">2</span>)</span><br><span class="line">plt.xlabel(<span class="string">&quot;Rank&quot;</span>)</span><br><span class="line">plt.ylabel(<span class="string">&quot;Matching Rate&quot;</span>)</span><br><span class="line">plt.legend()</span><br><span class="line">plt.title(<span class="string">&quot;CMC Curve&quot;</span>)</span><br><span class="line">plt.show()</span><br></pre></td></tr></table></figure>
+<p>绘制曲线结果如下：</p>
+<table>
+    <tr>
+        <td><center>
+        <img src="https://img-blog.csdnimg.cn/20190115172447799.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl80MjA5NDU4OQ==,size_16,color_FFFFFF,t_70" />
+        </center>
+        <center>
+        图8 SVM分类器训练模型下的ROC曲线
+        </center></td> 
+    <tr>
+</table>
+
+
+<h1 id="其他参考"><a href="#其他参考" class="headerlink" title="其他参考"></a>其他参考</h1><ol>
+<li>facenet源码解析：Triplet Los<br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/38341541">https://zhuanlan.zhihu.com/p/38341541</a></li>
+<li>facenet入门程序：里边包括很多对facenet源码的解读<br><a target="_blank" rel="noopener" href="https://github.com/boyliwensheng/understand_facenet">https://github.com/boyliwensheng/understand_facenet</a></li>
+<li>pairs.txt文件结构<br><a target="_blank" rel="noopener" href="http://vis-www.cs.umass.edu/lfw/README.txt">http://vis-www.cs.umass.edu/lfw/README.txt</a></li>
+</ol>
+
+      
+    </div>
+    <div class="article-footer">
+      <blockquote class="mt-2x">
+  <ul class="post-copyright list-unstyled">
+    
+    <li class="post-copyright-link hidden-xs">
+      <strong>本文链接：</strong>
+      <a href="http://www.li2ui2.xyz/2021/01/04/AI-%E4%B8%80-%E8%BF%90%E7%94%A8MTCNN%E5%92%8CFacenet%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%92%8C%E6%A3%80%E6%B5%8B/" title="AI(一) 运用MTCNN和Facenet模型实现人脸识别和检测" target="_blank" rel="external">http://www.li2ui2.xyz/2021/01/04/AI-%E4%B8%80-%E8%BF%90%E7%94%A8MTCNN%E5%92%8CFacenet%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB%E5%92%8C%E6%A3%80%E6%B5%8B/</a>
+    </li>
+    
+    <li class="post-copyright-license">
+      <strong>版权声明： </strong> 本博客所有文章除特别声明外，均采用 <a href="http://creativecommons.org/licenses/by/4.0/deed.zh" target="_blank" rel="external">CC BY 4.0 CN协议</a> 许可协议。转载请注明出处！
+    </li>
+  </ul>
+</blockquote>
+
+
+<div class="panel panel-default panel-badger">
+  <div class="panel-body">
+    <figure class="media">
+      <div class="media-left">
+        <a href="https://github.com/li2ui2" target="_blank" class="img-burn thumb-sm visible-lg">
+          <img src="/images/liwei.jpg" class="img-rounded w-full" alt="">
+        </a>
+      </div>
+      <div class="media-body">
+        <h3 class="media-heading"><a href="https://github.com/li2ui2" target="_blank"><span class="text-dark">你的老李同学</span><small class="ml-1x">R&amp;D Engineer</small></a></h3>
+        <div>每天都要学习到晕厥</div>
+      </div>
+    </figure>
+  </div>
+</div>
+
+
+    </div>
+  </article>
+  
+    
+  <section id="comments">
+  	
+      <div id="vcomments"></div>
+    
+  </section>
+
+
+  
+</div>
+
+  <nav class="bar bar-footer clearfix" data-stick-bottom>
+  <div class="bar-inner">
+  
+  <ul class="pager pull-left">
+    
+    <li class="prev">
+      <a href="/2021/01/04/Python-%E4%B8%89-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8Bndarray%E3%80%81series%E5%92%8Cdataframe%E4%B9%8B%E9%97%B4%E7%9A%84%E7%9B%B8%E4%BA%92%E8%BD%AC%E6%8D%A2/" title="Python(三) 数据类型ndarray、series和dataframe之间的相互转换"><i class="icon icon-angle-left" aria-hidden="true"></i><span>&nbsp;&nbsp;上一篇</span></a>
+    </li>
+    
+    
+    <li class="next">
+      <a href="/2021/01/04/Git-%E4%B8%80-Windows%E4%B8%8B%E9%80%9A%E8%BF%87Git%E5%B7%A5%E5%85%B7%E4%B8%8A%E4%BC%A0%E6%9C%AC%E5%9C%B0%E9%A1%B9%E7%9B%AE-%E5%A4%A7%E6%96%87%E4%BB%B6-%E5%88%B0GitHUb%E4%B8%8A/" title="Git(一) Windows下通过Git工具上传本地项目(大文件)到GitHUb上"><span>下一篇&nbsp;&nbsp;</span><i class="icon icon-angle-right" aria-hidden="true"></i></a>
+    </li>
+    
+    
+  </ul>
+  
+  
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-fancy btn-donate pop-onhover bg-gradient-warning" data-toggle="modal" data-target="#donateModal"><span>赏</span></button>
+  <!-- <div class="wave-icon wave-icon-danger btn-donate" data-toggle="modal" data-target="#donateModal">
+    <div class="wave-circle"><span class="icon"><i class="icon icon-bill"></i></span></div>
+  </div> -->
+  
+  
+  <div class="bar-right">
+    
+    <div class="share-component" data-sites="weibo,qq,wechat,facebook,twitter" data-mobile-sites="weibo,qq,qzone"></div>
+    
+  </div>
+  </div>
+</nav>
+  
+<!-- Modal -->
+<div class="modal modal-center modal-small modal-xs-full fade" id="donateModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content donate">
+      <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <div class="modal-body">
+        <div class="donate-box">
+          <div class="donate-head">
+            <p>感谢您的支持，我会继续努力的!</p>
+          </div>
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane fade active in" id="alipay">
+              <div class="donate-payimg">
+                <img src="/images/donate/alipayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开支付宝扫一扫，即可进行扫码打赏哦</p>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="wechatpay">
+              <div class="donate-payimg">
+                <img src="/images/donate/wechatpayimg.png" alt="扫码支持" title="扫一扫" />
+              </div>
+              <p class="text-muted mv">扫码打赏，你说多少就多少</p>
+              <p class="text-grey">打开微信扫一扫，即可进行扫码打赏哦</p>
+            </div>
+          </div>
+          <div class="donate-footer">
+            <ul class="nav nav-tabs nav-justified" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#alipay" id="alipay-tab" role="tab" data-toggle="tab" aria-controls="alipay" aria-expanded="true"><i class="icon icon-alipay"></i> 支付宝</a>
+              </li>
+              <li role="presentation" class="">
+                <a href="#wechatpay" role="tab" id="wechatpay-tab" data-toggle="tab" aria-controls="wechatpay" aria-expanded="false"><i class="icon icon-wepay"></i> 微信支付</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+</main>
+
+  <footer class="footer" itemscope itemtype="http://schema.org/WPFooter">
+	
+	
+    <ul class="social-links">
+    	
+        <li><a href="https://github.com/li2ui2" target="_blank" title="Github" data-toggle=tooltip data-placement=top><i class="icon icon-github"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Weibo" data-toggle=tooltip data-placement=top><i class="icon icon-weibo"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Twitter" data-toggle=tooltip data-placement=top><i class="icon icon-twitter"></i></a></li>
+        
+        <li><a href="/null" target="_blank" title="Behance" data-toggle=tooltip data-placement=top><i class="icon icon-behance"></i></a></li>
+        
+        <li><a href="/atom.xml" target="_blank" title="Rss" data-toggle=tooltip data-placement=top><i class="icon icon-rss"></i></a></li>
+        
+    </ul>
+
+    <div class="copyright">
+    	
+        &copy; 2022 Li Wei
+        
+        <div class="publishby">
+        	Theme by <a href="https://github.com/cofess" target="_blank"> cofess </a>base on <a href="https://github.com/cofess/hexo-theme-pure" target="_blank">pure</a>.
+        </div>
+    </div>
+</footer>
+  <script src="//cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<script>
+window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')
+</script>
+
+<script src="/js/plugin.min.js"></script>
+
+
+<script src="/js/application.js"></script>
+
+
+    <script>
+(function (window) {
+    var INSIGHT_CONFIG = {
+        TRANSLATION: {
+            POSTS: '文章',
+            PAGES: '页面',
+            CATEGORIES: '分类',
+            TAGS: '标签',
+            UNTITLED: '(未命名)',
+        },
+        ROOT_URL: '/',
+        CONTENT_URL: '/content.json',
+    };
+    window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+})(window);
+</script>
+
+<script src="/js/insight.js"></script>
+
+
+
+
+
+
+   
+
+
+
+
+   
+    
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/valine"></script>
+  <script type="text/javascript">
+  var GUEST = ['nick', 'mail', 'link'];
+  var meta = 'nick,mail,link';
+  meta = meta.split(',').filter(function(item) {
+    return GUEST.indexOf(item) > -1;
+  });
+  new Valine({
+    el: '#vcomments',
+    verify: false,
+    notify: true,
+    appId: 'C4mjAEf6eUerQGDf0h0RsjNe-gzGzoHsz',
+    appKey: 'CUeJRp85k5GiRkjjuOuXggjQ',
+    placeholder: '说点什么...',
+    avatar: 'mm',
+    meta: meta,
+    pageSize: '10' || 10,
+    visitor: true
+  });
+  </script>
+
+     
+
+
+
+
+
+
+
+</body>
+</html>

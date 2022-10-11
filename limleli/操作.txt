@@ -1,0 +1,2 @@
+修改好文案后执行以下命令：
+coffee -c script.coffee
